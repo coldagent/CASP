@@ -5,12 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CASP"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" FontFamily="./Fonts/#OpenSans">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="389*"/>
             <ColumnDefinition Width="11*"/>
         </Grid.ColumnDefinitions>
+        <Rectangle x:Name="Navbar_Background" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="800" Grid.ColumnSpan="2" Fill="#FF500000"/>
+        <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
+        <Button x:Name="Operation" Content="Operation" HorizontalAlignment="Left" Margin="285,8,0,0" VerticalAlignment="Top" FontSize="25" Click="Operation_Click_1"/>
+        <Button x:Name="Result" Content="Result" HorizontalAlignment="Left" Margin="443,8,0,0" VerticalAlignment="Top" Click="Result_Click" FontSize="25"/>
 
     </Grid>
 </Window>

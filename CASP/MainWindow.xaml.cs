@@ -23,6 +23,24 @@ namespace CASP
         public MainWindow()
         {
             InitializeComponent();
+
+            // Initialize Event.
+            this.SizeChanged += MainWindow_SizeChanged;
+        }
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            //System.Diagnostics.Debug.WriteLine("BRUH");
+            Navbar_Background.Width = ActualWidth;
+        }
+
+        private void Operation_Click_1(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Result_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
