@@ -35,7 +35,7 @@ namespace CASP
         {
             Window window = Application.Current.MainWindow;
             MainWindow? window2 = window as MainWindow;
-            window2!.SwitchPages(false);
+            window2?.SwitchPages(false);
         }
     }
 }
