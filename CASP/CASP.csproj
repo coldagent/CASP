@@ -5,11 +5,8 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="TAM-PrimaryMarkA.png" />
-  </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Images\TAM-PrimaryMarkA.png" />

@@ -10,7 +10,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace CASP
@@ -20,44 +19,17 @@ namespace CASP
     /// </summary>
     public partial class MainWindow : Window
     {
+        private OperationPage OpPage = new();
+        private ResultPage ResPage = new();
         public MainWindow()
         {
             InitializeComponent();
-
-            // Initialize Event.
-            this.SizeChanged += MainWindow_SizeChanged;
+            MainFrame.Navigate(OpPage);
         }
-        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        public void SwitchPages(bool IsOpPage)
         {
-            Navbar_Background.Width = ActualWidth;
-        }
-
-        private void Operation_Click_1(object sender, RoutedEventArgs e)
-        {
-            Thickness temp = Result.BorderThickness;
-            temp.Top = 0.0;
-            temp.Bottom = 0.0;
-            Operation.BorderThickness = temp;
-            Operation.Background = Brushes.Gray;
-
-            temp.Top = 1.0;
-            temp.Bottom = 1.0;
-            Result.BorderThickness = temp;
-            Result.Background = Brushes.LightGray;
-        }
-
-        private void Result_Click(object sender, RoutedEventArgs e)
-        {
-            Thickness temp = Result.BorderThickness;
-            temp.Top = 0.0;
-            temp.Bottom = 0.0;
-            Result.BorderThickness = temp;
-            Result.Background = Brushes.Gray;
-
-            temp.Top = 1.0;
-            temp.Bottom = 1.0;
-            Operation.BorderThickness = temp;
-            Operation.Background = Brushes.LightGray;
+            if (IsOpPage){ MainFrame.Navigate(ResPage); } 
+            else { MainFrame.Navigate(OpPage); }
         }
     }
 }
