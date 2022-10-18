@@ -29,18 +29,35 @@ namespace CASP
         }
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //System.Diagnostics.Debug.WriteLine("BRUH");
             Navbar_Background.Width = ActualWidth;
         }
 
         private void Operation_Click_1(object sender, RoutedEventArgs e)
         {
+            Thickness temp = Result.BorderThickness;
+            temp.Top = 0.0;
+            temp.Bottom = 0.0;
+            Operation.BorderThickness = temp;
+            Operation.Background = Brushes.Gray;
 
+            temp.Top = 1.0;
+            temp.Bottom = 1.0;
+            Result.BorderThickness = temp;
+            Result.Background = Brushes.LightGray;
         }
 
         private void Result_Click(object sender, RoutedEventArgs e)
         {
+            Thickness temp = Result.BorderThickness;
+            temp.Top = 0.0;
+            temp.Bottom = 0.0;
+            Result.BorderThickness = temp;
+            Result.Background = Brushes.Gray;
 
+            temp.Top = 1.0;
+            temp.Bottom = 1.0;
+            Operation.BorderThickness = temp;
+            Operation.Background = Brushes.LightGray;
         }
     }
 }

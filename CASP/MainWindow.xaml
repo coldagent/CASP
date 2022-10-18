@@ -6,15 +6,25 @@
         xmlns:local="clr-namespace:CASP"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" FontFamily="./Fonts/#OpenSans">
-    <Grid>
+    <Window.Resources>
+        <Style TargetType="Button" x:Key="RoundButton">
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5" />
+                </Style>
+            </Style.Resources>
+        </Style>
+    </Window.Resources>
+    <Grid Cursor="Hand">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="389*"/>
-            <ColumnDefinition Width="11*"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Rectangle x:Name="Navbar_Background" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="800" Grid.ColumnSpan="2" Fill="#FF500000"/>
-        <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
-        <Button x:Name="Operation" Content="Operation" HorizontalAlignment="Left" Margin="285,8,0,0" VerticalAlignment="Top" FontSize="25" Click="Operation_Click_1"/>
-        <Button x:Name="Result" Content="Result" HorizontalAlignment="Left" Margin="443,8,0,0" VerticalAlignment="Top" Click="Result_Click" FontSize="25"/>
+        <Rectangle x:Name="Navbar_Background" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="800" Fill="#FF500000"/>
+        <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/Images/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
+        <Button x:Name="Operation" Content="Operation" Margin="211,0,0,0" VerticalAlignment="Top" FontSize="25" Click="Operation_Click_1" Height="50" BorderThickness="1,0,1,0" Cursor="Hand" BorderBrush="#FF500000" Foreground="Black" Background="Gray" HorizontalAlignment="Left" Width="140"/>
+        <Button x:Name="Result" Content="Result" HorizontalAlignment="Left" Margin="351,0,0,0" VerticalAlignment="Top" Click="Result_Click" FontSize="25" Height="50" Width="140" BorderThickness="1,2,1,2" Cursor="Hand" BorderBrush="#FF500000" Background="LightGray"/>
 
     </Grid>
+
 </Window>
