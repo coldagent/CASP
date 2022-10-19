@@ -22,15 +22,32 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
+        <Grid x:Name="DepthGrid" Height="34" Width="386">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="103*"/>
+                <ColumnDefinition Width="283*"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="DepthBox" HorizontalAlignment="Left" Height="30" TextWrapping="Wrap" VerticalAlignment="Center" Width="200" TextChanged="TextBox_TextChanged" FontFamily="Open Sans" Text="Enter the probe depth" FontSize="18" Margin="23,0,0,0" Cursor="IBeam" Grid.Column="1"/>
+            <Label x:Name="DepthLabel" Content="Probe Depth:" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontFamily="Open Sans" IsHitTestVisible="False" Grid.ColumnSpan="2"/>
+            <ComboBox x:Name="DepthUnit" HorizontalAlignment="Left" Margin="228,0,0,0" VerticalAlignment="Center" Width="55" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" FontFamily="Open Sans" SelectedIndex="0" Grid.Column="1">
+                <ComboBoxItem Content="Unit" Focusable="False" IsTabStop="False" IsHitTestVisible="False" IsEnabled="False" Visibility="Hidden" FontFamily="Open Sans"/>
+                <ComboBoxItem Content="in." FontFamily="Open Sans"/>
+                <ComboBoxItem Content="cm" FontFamily="Open Sans"/>
+                <ComboBoxItem Content="ft" FontFamily="Open Sans"/>
+                <ComboBoxItem Content="m" FontFamily="Open Sans"/>
+            </ComboBox>
+
+        </Grid>
         <Rectangle x:Name="Navbar_Background" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="800" Fill="#FF500000"/>
         <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/Images/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
         <Button Style="{DynamicResource RoundButton}" x:Name="Result" Content="Result" HorizontalAlignment="Left" Margin="351,0,0,0" VerticalAlignment="Top" Click="Result_Click" FontSize="25" Height="50" Width="140" BorderThickness="1,2,1,2" Cursor="Hand" BorderBrush="#FF500000" Background="LightGray"/>
         <Label Content="Operation" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" FontSize="25" Background="Gray" Width="140" Height="50" BorderBrush="#FF500000" BorderThickness="1,0,1,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <TextBox x:Name="DepthBox" HorizontalAlignment="Center" Height="30" TextWrapping="Wrap" VerticalAlignment="Center" Width="200" TextChanged="TextBox_TextChanged" FontFamily="Open Sans" Text="Enter the probe depth" FontSize="18"/>
-        <Label Content="Probe Depth:" HorizontalAlignment="Left" Margin="179,0,0,0" VerticalAlignment="Center" FontSize="18" FontFamily="Open Sans"/>
-        <ComboBox HorizontalAlignment="Left" Margin="505,0,0,0" VerticalAlignment="Center" Width="55" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" FontFamily="Open Sans" SelectedIndex="0">
-            <ListBoxItem Content="Unit" FontFamily="Open Sans" IsEnabled="False" Visibility="Hidden"/>
-        </ComboBox>
+        <Grid x:Name="BtnsGrid" Margin="0,356,0,0" Width="480" Height="50">
+            <Button x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="140" FontSize="25" Foreground="#FF48D700" Click="StartBtn_Click"/>
+            <Button x:Name="StopBtn" Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Top" Width="140" Height="50" FontSize="25" Foreground="#FFD72700"/>
+            <Button x:Name="ResetBtn" Content="Reset" HorizontalAlignment="Left" Height="50" Margin="340,0,0,0" VerticalAlignment="Top" Width="140" FontFamily="Open Sans" FontSize="25"/>
+
+        </Grid>
 
     </Grid>
 </Page>

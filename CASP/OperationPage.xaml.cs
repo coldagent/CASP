@@ -54,7 +54,7 @@ namespace CASP
         {
             if (DepthBox.Text == "")
             {
-                DepthBox.Text = "Enter the Probe Depth";
+                DepthBox.Text = "Enter the probe depth";
             }
         }
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -65,6 +65,28 @@ namespace CASP
         private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
+        }
+
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+            bool isNumber = double.TryParse(DepthBox.Text, out _);
+            string messageBoxText = "Error: Invalid Probe Depth Input";
+            string caption = "Error";
+            MessageBoxButton button = MessageBoxButton.OK;
+            MessageBoxImage icon = MessageBoxImage.Information;
+            if (isNumber && DepthUnit.Text != "Unit")
+            {
+                messageBoxText = "Probe Depth Entered: " + DepthBox.Text + " " + DepthUnit.Text;
+                caption = "Info Entered";
+            } else if (isNumber && DepthUnit.Text == "Unit")
+            {
+                messageBoxText = "Error: Please select a Probe Depth unit";
+            } else if (!isNumber)
+            {
+                messageBoxText = "Error: Please enter a Probe Depth decimal number";
+            }
+
+            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
         }
     }
 }
