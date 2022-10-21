@@ -29,6 +29,7 @@ namespace CASP
             this.SizeChanged += OperationPage_SizeChanged;
             this.DepthBox.GotFocus += DepthBox_GotFocus;
             this.DepthBox.LostFocus += DepthBox_LostFocus;
+            Checkmark.Visibility = Visibility.Hidden;
         }
 
         private void OperationPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -73,11 +74,12 @@ namespace CASP
             string messageBoxText = "Error: Invalid Probe Depth Input";
             string caption = "Error";
             MessageBoxButton button = MessageBoxButton.OK;
-            MessageBoxImage icon = MessageBoxImage.Information;
+            MessageBoxImage icon = MessageBoxImage.Error;
             if (isNumber && DepthUnit.Text != "Unit")
             {
                 messageBoxText = "Probe Depth Entered: " + DepthBox.Text + " " + DepthUnit.Text;
                 caption = "Info Entered";
+                icon = MessageBoxImage.Information;
             } else if (isNumber && DepthUnit.Text == "Unit")
             {
                 messageBoxText = "Error: Please select a Probe Depth unit";
@@ -86,6 +88,24 @@ namespace CASP
                 messageBoxText = "Error: Please enter a Probe Depth decimal number";
             }
 
+            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+        }
+
+        private void StopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            string messageBoxText = "The Stop Button was pressed";
+            string caption = "Info";
+            MessageBoxButton button = MessageBoxButton.OK;
+            MessageBoxImage icon = MessageBoxImage.Information;
+            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+        }
+
+        private void ResetBtn_Click(object sender, RoutedEventArgs e)
+        {
+            string messageBoxText = "The Reset Button was pressed";
+            string caption = "Info";
+            MessageBoxButton button = MessageBoxButton.OK;
+            MessageBoxImage icon = MessageBoxImage.Information;
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
         }
     }

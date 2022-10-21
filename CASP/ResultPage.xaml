@@ -16,6 +16,13 @@
                 </Style>
             </Style.Resources>
         </Style>
+        <Style TargetType="Label" x:Key="RoundLabel">
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5" />
+                </Style>
+            </Style.Resources>
+        </Style>
     </Page.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -25,7 +32,7 @@
         <Rectangle x:Name="Navbar_Background" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="800" Fill="#FF500000"/>
         <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/Images/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
         <Button Style="{DynamicResource RoundButton}" x:Name="Operation" Content="Operation" Margin="211,0,0,0" VerticalAlignment="Top" FontSize="25" Click="Operation_Click_1" Height="50" BorderThickness="1,2,1,2" Cursor="Hand" BorderBrush="#FF500000" Foreground="Black" Background="LightGray" HorizontalAlignment="Left" Width="140"/>
-        <Label Content="Result" HorizontalAlignment="Left" Margin="351,0,0,0" VerticalAlignment="Top" FontSize="25" Background="Gray" Width="140" Height="50" BorderBrush="#FF500000" BorderThickness="1,0,1,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <Label Style="{DynamicResource RoundLabel}" Content="Result" HorizontalAlignment="Left" Margin="351,0,0,0" VerticalAlignment="Top" FontSize="25" Background="Gray" Width="140" Height="50" BorderBrush="#FF500000" BorderThickness="1,0,1,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
     </Grid>
 </Page>

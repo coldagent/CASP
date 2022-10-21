@@ -16,13 +16,20 @@
                 </Style>
             </Style.Resources>
         </Style>
+        <Style TargetType="Label" x:Key="RoundLabel">
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5" />
+                </Style>
+            </Style.Resources>
+        </Style>
     </Page.Resources>
     <Grid Cursor="Hand">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="DepthGrid" Height="34" Width="386">
+        <Grid x:Name="DepthGrid" Height="34" Width="386" Margin="207,238,207,178">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="103*"/>
                 <ColumnDefinition Width="283*"/>
@@ -38,14 +45,61 @@
             </ComboBox>
 
         </Grid>
+        <Grid x:Name="BtnsGrid" Margin="160,379,160,21" Width="480" Height="50">
+            <Button Style="{DynamicResource RoundButton}" x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="140" FontSize="25" Foreground="Green" Click="StartBtn_Click" FontFamily="Open Sans"/>
+            <Button Style="{DynamicResource RoundButton}" x:Name="StopBtn" Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Top" Width="140" Height="50" FontSize="25" Foreground="Red" Click="StopBtn_Click" FontFamily="Open Sans"/>
+            <Button Style="{DynamicResource RoundButton}" x:Name="ResetBtn" Content="Reset" HorizontalAlignment="Right" Height="50" Margin="340,0,0,0" VerticalAlignment="Top" Width="140" FontFamily="Open Sans" FontSize="25" Click="ResetBtn_Click"/>
+
+        </Grid>
+        <Label Style="{DynamicResource RoundLabel}" x:Name="ConnectionLabel" Content="Disconnected" Margin="328,122,328,298" FontFamily="Open Sans" FontSize="18" Background="LightGray" IsHitTestVisible="False" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="144" Height="30"/>
         <Rectangle x:Name="Navbar_Background" HorizontalAlignment="Center" Height="50" VerticalAlignment="Top" Width="800" Fill="#FF500000"/>
         <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/Images/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
         <Button Style="{DynamicResource RoundButton}" x:Name="Result" Content="Result" HorizontalAlignment="Left" Margin="351,0,0,0" VerticalAlignment="Top" Click="Result_Click" FontSize="25" Height="50" Width="140" BorderThickness="1,2,1,2" Cursor="Hand" BorderBrush="#FF500000" Background="LightGray"/>
-        <Label Content="Operation" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" FontSize="25" Background="Gray" Width="140" Height="50" BorderBrush="#FF500000" BorderThickness="1,0,1,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <Grid x:Name="BtnsGrid" Margin="0,356,0,0" Width="480" Height="50">
-            <Button x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="140" FontSize="25" Foreground="#FF48D700" Click="StartBtn_Click"/>
-            <Button x:Name="StopBtn" Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Top" Width="140" Height="50" FontSize="25" Foreground="#FFD72700"/>
-            <Button x:Name="ResetBtn" Content="Reset" HorizontalAlignment="Left" Height="50" Margin="340,0,0,0" VerticalAlignment="Top" Width="140" FontFamily="Open Sans" FontSize="25"/>
+        <Label Style="{DynamicResource RoundLabel}" Content="Operation" HorizontalAlignment="Left" Margin="211,0,0,0" VerticalAlignment="Top" FontSize="25" Background="Gray" Width="140" Height="50" BorderBrush="#FF500000" BorderThickness="1,0,1,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+        <Grid x:Name="Checkmark" Height="14" Margin="337,130,445,306" Width="18" IsHitTestVisible="False">
+            <Rectangle Height="5" Margin="3,0,0,0" Fill="Green" RenderTransformOrigin="0.5,0.5" RadiusX="2.5" RadiusY="2.5">
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="-45"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle Height="5" Width="10" Fill="Green" RenderTransformOrigin="0.5,0.5" RadiusX="2.5" RadiusY="2.5" Margin="0,6,8,3">
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="45"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+        </Grid>
+        <Grid x:Name="Xmark" Margin="337,130,445,306" Width="18" Height="14">
+            <Rectangle Height="5" Width="15" Fill="Red" RadiusX="3" RadiusY="3" RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="45"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+            <Rectangle Height="5" Width="15" Fill="Red" RadiusX="3" RadiusY="3" RenderTransformOrigin="0.5,0.5">
+                <Rectangle.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform/>
+                        <SkewTransform/>
+                        <RotateTransform Angle="-45"/>
+                        <TranslateTransform/>
+                    </TransformGroup>
+                </Rectangle.RenderTransform>
+            </Rectangle>
 
         </Grid>
 
