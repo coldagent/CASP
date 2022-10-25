@@ -21,6 +21,9 @@ namespace CASP
     /// </summary>
     public partial class OperationPage : Page
     {
+        private System.Windows.Threading.DispatcherTimer dispatcherTimer = new();
+        private int runtime = -1;
+
         public OperationPage()
         {
             InitializeComponent();
@@ -30,6 +33,17 @@ namespace CASP
             this.DepthBox.GotFocus += DepthBox_GotFocus;
             this.DepthBox.LostFocus += DepthBox_LostFocus;
             Checkmark.Visibility = Visibility.Hidden;
+            dispatcherTimer.Tick += new EventHandler(DispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Start();
+        }
+
+        private void DispatcherTimer_Tick(object? sender, EventArgs e)
+        {
+            if (runtime < 0)
+                return;
+            else
+                runtime++;
         }
 
         private void OperationPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -58,18 +72,11 @@ namespace CASP
                 DepthBox.Text = "Enter the probe depth";
             }
         }
-        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-
-        }
-
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-
-        }
 
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
+            bool valid = false;
+
             bool isNumber = double.TryParse(DepthBox.Text, out _);
             string messageBoxText = "Error: Invalid Probe Depth Input";
             string caption = "Error";
@@ -78,8 +85,9 @@ namespace CASP
             if (isNumber && DepthUnit.Text != "Unit")
             {
                 messageBoxText = "Probe Depth Entered: " + DepthBox.Text + " " + DepthUnit.Text;
-                caption = "Info Entered";
+                caption = "Starting Probe";
                 icon = MessageBoxImage.Information;
+                valid = true;
             } else if (isNumber && DepthUnit.Text == "Unit")
             {
                 messageBoxText = "Error: Please select a Probe Depth unit";
@@ -89,12 +97,19 @@ namespace CASP
             }
 
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+            if (valid)
+            {
+                runtime++;
+            }
         }
 
         private void StopBtn_Click(object sender, RoutedEventArgs e)
         {
             string messageBoxText = "The Stop Button was pressed";
-            string caption = "Info";
+            if (runtime >= 0)
+                messageBoxText += "\nRan for " + runtime.ToString() + " seconds";
+            runtime = -1;
+            string caption = "Stopping Probe";
             MessageBoxButton button = MessageBoxButton.OK;
             MessageBoxImage icon = MessageBoxImage.Information;
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
@@ -103,7 +118,7 @@ namespace CASP
         private void ResetBtn_Click(object sender, RoutedEventArgs e)
         {
             string messageBoxText = "The Reset Button was pressed";
-            string caption = "Info";
+            string caption = "Resetting Probe";
             MessageBoxButton button = MessageBoxButton.OK;
             MessageBoxImage icon = MessageBoxImage.Information;
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
