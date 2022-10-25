@@ -36,13 +36,13 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="DepthGrid" Margin="200,238,200,178">
+        <Grid x:Name="DepthGrid" Margin="198,238,198,178" Width="405" Height="34">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="103*"/>
                 <ColumnDefinition Width="283*"/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="DepthBox" Style="{DynamicResource RoundTextBox}" HorizontalAlignment="Left" VerticalContentAlignment="Center" Height="30" TextWrapping="Wrap" VerticalAlignment="Center" Width="200" FontFamily="Open Sans" Text="Enter the probe depth" FontSize="18" Margin="23,0,0,0" Cursor="IBeam" Grid.Column="1"/>
-            <Label x:Name="DepthLabel" Content="Probe Depth:" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontFamily="Open Sans" IsHitTestVisible="False" Grid.ColumnSpan="2"/>
+            <TextBox x:Name="DepthBox" Style="{DynamicResource RoundTextBox}" HorizontalAlignment="Left" HorizontalContentAlignment="Left" VerticalContentAlignment="Center" Height="30" TextWrapping="Wrap" VerticalAlignment="Center" Width="200" FontFamily="Open Sans" Text="Enter the probe depth" FontSize="18" Margin="23,0,0,0" Cursor="IBeam" Grid.Column="1"/>
+            <Label x:Name="DepthLabel" Content="Probe Depth:" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontFamily="Open Sans" IsHitTestVisible="False" Grid.ColumnSpan="2" Margin="8,0,0,0"/>
             <ComboBox Style="{DynamicResource RoundComboBox}" ItemContainerStyle="{DynamicResource RoundComboBoxItem}" x:Name="DepthUnit" HorizontalAlignment="Left" Margin="226,0,0,0" VerticalAlignment="Center" IsReadOnly="True" FontFamily="Open Sans" SelectedIndex="0" Grid.Column="1" UseLayoutRounding="True" Width="68" Height="30" FontSize="14" BorderBrush="#FFABADB3" Foreground="Black">
                 <ComboBoxItem Content="Unit" Focusable="False" IsTabStop="False" IsHitTestVisible="False" IsEnabled="False" Visibility="Hidden" FontFamily="Open Sans"/>
                 <ComboBoxItem Content="in." FontFamily="Open Sans"/>
