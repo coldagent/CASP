@@ -24,7 +24,7 @@
             </Style.Resources>
         </Style>
     </Page.Resources>
-    <Grid Cursor="Hand">
+    <Grid Cursor="Arrow">
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
@@ -34,7 +34,7 @@
                 <ColumnDefinition Width="103*"/>
                 <ColumnDefinition Width="283*"/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="DepthBox" HorizontalAlignment="Left" Height="30" TextWrapping="Wrap" VerticalAlignment="Center" Width="200" TextChanged="TextBox_TextChanged" FontFamily="Open Sans" Text="Enter the probe depth" FontSize="18" Margin="23,0,0,0" Cursor="IBeam" Grid.Column="1"/>
+            <TextBox x:Name="DepthBox" HorizontalAlignment="Left" VerticalContentAlignment="Center" Height="30" TextWrapping="Wrap" VerticalAlignment="Center" Width="200" TextChanged="TextBox_TextChanged" FontFamily="Open Sans" Text="Enter the probe depth" FontSize="18" Margin="23,0,0,0" Cursor="IBeam" Grid.Column="1"/>
             <Label x:Name="DepthLabel" Content="Probe Depth:" HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="18" FontFamily="Open Sans" IsHitTestVisible="False" Grid.ColumnSpan="2"/>
             <ComboBox x:Name="DepthUnit" HorizontalAlignment="Left" Margin="228,0,0,0" VerticalAlignment="Center" Width="55" IsReadOnly="True" SelectionChanged="ComboBox_SelectionChanged" FontFamily="Open Sans" SelectedIndex="0" Grid.Column="1">
                 <ComboBoxItem Content="Unit" Focusable="False" IsTabStop="False" IsHitTestVisible="False" IsEnabled="False" Visibility="Hidden" FontFamily="Open Sans"/>
