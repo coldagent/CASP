@@ -56,12 +56,21 @@ namespace CASP
                         continue;
                     files.Add(names[i], paths[i]);
                 }
-                string text = "";
+                FileNames.Items.Clear();
                 foreach(string name in files.Keys)
                 {
-                    text += name + "\n";
+                    FileNames.Items.Add(name);
                 }
-                FileNames.Text = text;
+            }
+        }
+
+        private void RemoveButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FileNames.SelectedItem != null)
+            {
+                string selectedName = (string)FileNames.SelectedItem;
+                FileNames.Items.Remove(FileNames.SelectedItem);
+                files.Remove(selectedName);
             }
         }
     }

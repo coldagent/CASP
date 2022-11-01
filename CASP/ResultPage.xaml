@@ -33,9 +33,7 @@
         <Image x:Name="TAMU_Logo" HorizontalAlignment="Left" VerticalAlignment="Top" Source="/Images/TAM-PrimaryMarkA.png" Height="50" Width="206"/>
         <Button Style="{DynamicResource RoundButton}" x:Name="Operation" Content="Operation" Margin="211,0,0,0" VerticalAlignment="Top" FontSize="25" Click="Operation_Click_1" Height="50" BorderThickness="1,2,1,2" Cursor="Hand" BorderBrush="#FF500000" Foreground="Black" Background="LightGray" HorizontalAlignment="Left" Width="140"/>
         <Label Style="{DynamicResource RoundLabel}" Content="Result" HorizontalAlignment="Left" Margin="351,0,0,0" VerticalAlignment="Top" FontSize="25" Background="Gray" Width="140" Height="50" BorderBrush="#FF500000" BorderThickness="1,0,1,0" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-        <Border x:Name="SelectedFilesBorder" BorderBrush="Black" BorderThickness="1" Margin="10,135,0,10" Background="LightGray" CornerRadius="5" Width="270" HorizontalAlignment="Left">
-            <TextBlock x:Name="FileNames" FontFamily="Open Sans" FontSize="18" Margin="9,9,9,9"/>
-        </Border>
+        <Border x:Name="SelectedFilesBorder" BorderBrush="Black" BorderThickness="1" Margin="10,135,0,10" Background="LightGray" CornerRadius="5" Width="270" HorizontalAlignment="Left"/>
         <Border x:Name="ButtonsBorder" BorderBrush="Black" BorderThickness="1" Margin="10,55,0,355" Background="LightGray" CornerRadius="5" Width="270" HorizontalAlignment="Left" VerticalAlignment="Top" Height="40">
             <Grid>
                 <Button x:Name="OpenButton" Style="{DynamicResource RoundButton}" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Center" Height="30" Width="75" Background="#FF500000" BorderBrush="White" Cursor="Hand" Click="OpenButton_Click">
@@ -50,7 +48,7 @@
                         <Image x:Name="ExportImage" Source="/Images/export.png" DockPanel.Dock="Top" Height="20" Width="20" HorizontalAlignment="Left" Margin="0,0,2,0"/>
                     </DockPanel>
                 </Button>
-                <Button x:Name="RemoveButton" Style="{DynamicResource RoundButton}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Width="95" Background="#FF500000" BorderBrush="White" Margin="80,0,0,0" Cursor="Hand">
+                <Button x:Name="RemoveButton" Style="{DynamicResource RoundButton}" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Width="95" Background="#FF500000" BorderBrush="White" Margin="80,0,0,0" Cursor="Hand" Click="RemoveButton_Click">
                     <DockPanel>
                         <TextBlock x:Name="RemoveText" Text="Remove" DockPanel.Dock="Right" FontFamily="Open Sans" FontSize="18" Foreground="White" HorizontalAlignment="Right"/>
                         <Image x:Name="RemoveImage" Source="/Images/remove.png" DockPanel.Dock="Top" HorizontalAlignment="Left" Width="15" Height="15" Margin="0,0,2,0"/>
@@ -63,6 +61,7 @@
                 <Label x:Name="FileHeader" Content="Selected Files" FontFamily="Open Sans" FontSize="18" Foreground="White" HorizontalContentAlignment="Center"/>
             </Border>
         </Border>
+        <ListBox x:Name="FileNames" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="20,145,530,20" Width="250" Height="285" Background="{x:Null}" BorderBrush="{x:Null}" FontFamily="Open Sans" FontSize="16"/>
 
     </Grid>
 </Page>
