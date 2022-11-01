@@ -36,7 +36,7 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="DepthGrid" Margin="198,238,198,178" Width="405" Height="34">
+        <Grid x:Name="DepthGrid" Margin="198,237,198,179" Width="405" Height="34">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="103*"/>
                 <ColumnDefinition Width="283*"/>
@@ -52,10 +52,10 @@
             </ComboBox>
 
         </Grid>
-        <Grid x:Name="BtnsGrid" Margin="160,379,160,21" Width="480" Height="50">
-            <Button Style="{DynamicResource RoundButton}" x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="140" FontSize="25" Foreground="Green" Click="StartBtn_Click" FontFamily="Open Sans"/>
-            <Button Style="{DynamicResource RoundButton}" x:Name="StopBtn" Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Top" Width="140" Height="50" FontSize="25" Foreground="Red" Click="StopBtn_Click" FontFamily="Open Sans"/>
-            <Button Style="{DynamicResource RoundButton}" x:Name="ResetBtn" Content="Reset" HorizontalAlignment="Right" Height="50" Margin="340,0,0,0" VerticalAlignment="Top" Width="140" FontFamily="Open Sans" FontSize="25" Click="ResetBtn_Click"/>
+        <Grid x:Name="BtnsGrid" Margin="160,377,160,23" Width="480" Height="50">
+            <Button Style="{DynamicResource RoundButton}" x:Name="StartBtn" Content="Start" HorizontalAlignment="Left" Height="50" VerticalAlignment="Top" Width="140" FontSize="25" Foreground="Green" Click="StartBtn_Click" FontFamily="Open Sans" Cursor="Hand"/>
+            <Button Style="{DynamicResource RoundButton}" x:Name="StopBtn" Content="Stop" HorizontalAlignment="Center" VerticalAlignment="Top" Width="140" Height="50" FontSize="25" Foreground="Red" Click="StopBtn_Click" FontFamily="Open Sans" Cursor="Hand"/>
+            <Button Style="{DynamicResource RoundButton}" x:Name="ResetBtn" Content="Reset" HorizontalAlignment="Right" Height="50" Margin="340,0,0,0" VerticalAlignment="Top" Width="140" FontFamily="Open Sans" FontSize="25" Click="ResetBtn_Click" Cursor="Hand"/>
 
         </Grid>
         <Label Style="{DynamicResource RoundLabel}" x:Name="ConnectionLabel" Content="Disconnected" Margin="328,122,328,293" FontFamily="Open Sans" FontSize="18" Background="LightGray" IsHitTestVisible="False" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="144" Height="35"/>

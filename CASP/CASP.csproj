@@ -9,6 +9,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\export.png" />
+    <None Remove="Images\file.png" />
+    <None Remove="Images\open.png" />
+    <None Remove="Images\remove.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\export.png" />
+    <Resource Include="Images\file.png" />
+    <Resource Include="Images\open.png" />
+    <Resource Include="Images\remove.png" />
     <Resource Include="Images\TAM-PrimaryMarkA.png" />
   </ItemGroup>
 

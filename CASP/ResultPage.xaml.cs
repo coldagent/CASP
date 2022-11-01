@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,11 +9,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Application = System.Windows.Application;
 
 namespace CASP
 {
@@ -20,6 +24,8 @@ namespace CASP
     /// </summary>
     public partial class ResultPage : Page
     {
+        private OpenFileDialog fileSelector = new();
+        private Dictionary<string, string> files = new();
         public ResultPage()
         {
             InitializeComponent();
@@ -36,6 +42,27 @@ namespace CASP
             Window window = Application.Current.MainWindow;
             MainWindow? window2 = window as MainWindow;
             window2?.SwitchPages(false);
+        }
+
+        private void OpenButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (fileSelector.ShowDialog() == DialogResult.OK)
+            {
+                string[] names = fileSelector.SafeFileNames;
+                string[] paths = fileSelector.FileNames;
+                for (int i = 0; i < names.Length; i++)
+                {
+                    if (files.ContainsKey(names[i]))
+                        continue;
+                    files.Add(names[i], paths[i]);
+                }
+                string text = "";
+                foreach(string name in files.Keys)
+                {
+                    text += name + "\n";
+                }
+                FileNames.Text = text;
+            }
         }
     }
 }
