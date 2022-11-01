@@ -31,6 +31,8 @@ namespace CASP
             InitializeComponent();
 
             // Initialize Event.
+            fileSelector.InitialDirectory = Directory.GetCurrentDirectory();
+            fileSelector.RestoreDirectory = true;
             this.SizeChanged += ResultPage_SizeChanged;
         }
         private void ResultPage_SizeChanged(object sender, SizeChangedEventArgs e)
