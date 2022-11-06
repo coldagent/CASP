@@ -46,6 +46,11 @@ namespace CASP
             window2?.SwitchPages(false);
         }
 
+        private void Make_Graph(string filepath)
+        {
+
+        }
+
         private void OpenButton_Click(object sender, RoutedEventArgs e)
         {
             if (fileSelector.ShowDialog() == DialogResult.OK)
