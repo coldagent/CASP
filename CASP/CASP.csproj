@@ -27,4 +27,8 @@
     <Resource Include="Images\TAM-PrimaryMarkA.png" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TestData\" />
+  </ItemGroup>
+
 </Project>
