@@ -63,9 +63,9 @@
             </Border>
         </Border>
         <Border x:Name="SelectedFilesBorder" BorderBrush="Black" BorderThickness="1" Margin="10,135,0,10" Background="LightGray" CornerRadius="5" Width="270" HorizontalAlignment="Left">
-            <ListBox x:Name="FileNames" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="9,9,9,9" Background="{x:Null}" BorderBrush="{x:Null}" FontFamily="Open Sans" FontSize="16"/>
+            <ListBox x:Name="FileNames" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="9,9,9,9" Background="{x:Null}" BorderBrush="{x:Null}" FontFamily="Open Sans" FontSize="16" SelectionChanged="FileNames_SelectionChanged"/>
         </Border>
-        <WpfPlot Margin="290,60,10,10" x:Name="ResultPlot"/>
+        <WpfPlot Margin="290,60,10,10" x:Name="ResultPlot" HorizontalAlignment="Center" Width="500" VerticalAlignment="Center" Height="380"/>
     </Grid>
 </Page>
     

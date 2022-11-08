@@ -1,22 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -34,17 +20,33 @@ namespace CASP
         {
             InitializeComponent();
 
-            // Initialize Event.
-            fileSelector.InitialDirectory = Directory.GetCurrentDirectory();
-            fileSelector.RestoreDirectory = true;
-            ResultPlot.Plot.Title("Force vs. Depth");
+            // Initialize OpenFileDialog Directory (Goes to TestData Folder)
+            string[] split = Directory.GetCurrentDirectory().Split("\\");
+            string directory = "";            
+            for (int i = 0; i < split.Length - 3; i++)
+            {
+                directory += split[i] + '\\';
+            }
+            directory += "TestData";
+            fileSelector.InitialDirectory = directory;
+            fileSelector.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+            fileSelector.Multiselect = true;
+            // Initialize Plot
+            ResultPlot.Plot.Title("Force and Moisture vs. Depth");
             ResultPlot.Plot.XLabel("Depth (m)");
             ResultPlot.Plot.YLabel("Force (psi)");
+            ResultPlot.Plot.YAxis.Color(ResultPlot.Plot.Palette.GetColor(0));
+            ResultPlot.Plot.YAxis2.Label("Moisture (%)");
+            ResultPlot.Plot.YAxis2.Color(ResultPlot.Plot.Palette.GetColor(1));
+            ResultPlot.Plot.YAxis2.Ticks(true);
+            // Initialize Event
             this.SizeChanged += ResultPage_SizeChanged;
         }
         private void ResultPage_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             Navbar_Background.Width = ActualWidth;
+            ResultPlot.Width = ActualWidth - 300;
+            ResultPlot.Height = ActualHeight - 70;
         }
         private void Operation_Click_1(object sender, RoutedEventArgs e)
         {
@@ -62,7 +64,7 @@ namespace CASP
             }
             StreamReader reader = new StreamReader(files[filename]);
             var line = reader.ReadLine();
-            var vals = line.Split(',');
+            var vals = line!.Split(',');
             if (vals[0] != "CASP")
             {
                 MessageBox.Show("Invalid File Given", "Bad File", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes);
@@ -72,7 +74,7 @@ namespace CASP
             while (!reader.EndOfStream)
             {
                 line = reader.ReadLine();
-                vals = line.Split(',');
+                vals = line!.Split(',');
                 values[0].Add(double.Parse(vals[0]));
                 values[1].Add(double.Parse(vals[1]));
                 values[2].Add(double.Parse(vals[2]));
@@ -103,8 +105,6 @@ namespace CASP
                 {
                     FileNames.Items.Add(name);
                 }
-                ResultPlot.Plot.AddScatter(data[names[0]][0].ToArray(), data[names[0]][1].ToArray());
-                ResultPlot.Refresh();
             }
         }
 
@@ -115,7 +115,22 @@ namespace CASP
                 string selectedName = (string)FileNames.SelectedItem;
                 FileNames.Items.Remove(FileNames.SelectedItem);
                 files.Remove(selectedName);
+                data.Remove(selectedName);
+                ResultPlot.Plot.Clear();
+                ResultPlot.Refresh();
             }
+        }
+
+        private void FileNames_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            string selectedName = (string)FileNames.SelectedItem;
+            ResultPlot.Plot.Clear();
+            if (selectedName == null)
+                return;
+            ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][1].ToArray());
+            var moisture_plot = ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][2].ToArray());
+            moisture_plot.YAxisIndex = 1;
+            ResultPlot.Refresh();
         }
     }
 }
