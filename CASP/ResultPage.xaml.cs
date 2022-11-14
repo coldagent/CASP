@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -14,6 +15,7 @@ namespace CASP
     public partial class ResultPage : Page
     {
         private OpenFileDialog fileSelector = new();
+        private SaveFileDialog fileSaver = new();
         private Dictionary<string, string> files = new();
         private Dictionary<string, List<double>[]> data = new();
         public ResultPage()
@@ -31,6 +33,9 @@ namespace CASP
             fileSelector.InitialDirectory = directory;
             fileSelector.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
             fileSelector.Multiselect = true;
+            fileSaver.InitialDirectory = directory;
+            fileSaver.Filter = "PNG Image (*.png)|*.png";
+            fileSaver.Title = "Save and Image File";
             // Initialize Plot
             ResultPlot.Plot.Title("Force and Moisture vs. Depth");
             ResultPlot.Plot.XLabel("Depth (m)");
@@ -64,25 +69,28 @@ namespace CASP
             }
             StreamReader reader = new StreamReader(files[filename]);
             var line = reader.ReadLine();
-            if (line == null)
-                goto badFile;
-            var vals = line!.Split(',');
-            if (vals[0] != "CASP")
-                goto badFile;
+            if (line == null) return false;
+            var vals = line.Split(',');
+            if (vals[0] != "CASP") return false;
             reader.ReadLine();
             while (!reader.EndOfStream)
             {
                 line = reader.ReadLine();
+                if (line == null) return false;
                 vals = line!.Split(',');
-                values[0].Add(double.Parse(vals[0]));
-                values[1].Add(double.Parse(vals[1]));
-                values[2].Add(double.Parse(vals[2]));
+                try
+                {
+                    values[0].Add(double.Parse(vals[0]));
+                    values[1].Add(double.Parse(vals[1]));
+                    values[2].Add(double.Parse(vals[2]));
+                }
+                catch 
+                { 
+                    return false; 
+                }
             }
             data.Add(filename, values);
             return true;
-        badFile:
-            MessageBox.Show("Invalid File Given", "Bad File", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes);
-            return false;
         }
 
         private void OpenButton_Click(object sender, RoutedEventArgs e)
@@ -98,8 +106,8 @@ namespace CASP
                     files.Add(names[i], paths[i]);
                     if (!GetCSVData(names[i]))      //unsuccessful CSV generation
                     {
+                        MessageBox.Show("Invalid File Given: " + names[i], "Bad File", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes);
                         files.Remove(names[i]);
-                        return;
                     }
                 }
                 FileNames.Items.Clear();
@@ -133,6 +141,18 @@ namespace CASP
             var moisture_plot = ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][2].ToArray());
             moisture_plot.YAxisIndex = 1;
             ResultPlot.Refresh();
+        }
+
+        private void ExportButton_Click(object sender, RoutedEventArgs e)
+        {
+            string selectedName = (string)(FileNames.SelectedItem);
+            if (selectedName == null) return;
+            if (fileSaver.ShowDialog() == DialogResult.OK)
+            {
+                string filename = (string)fileSaver.FileName;
+                if (filename == null) return;
+                ResultPlot.Plot.SaveFig(fileSaver.FileName);
+            }
         }
     }
 }

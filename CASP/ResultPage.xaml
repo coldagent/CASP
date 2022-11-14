@@ -43,7 +43,7 @@
                         <Image x:Name="OpenImage" Source="/Images/open.png" DockPanel.Dock="Top" Height="20" Width="20" HorizontalAlignment="Left" Margin="0,0,2,0"/>
                     </DockPanel>
                 </Button>
-                <Button x:Name="ExportButton" Style="{DynamicResource RoundButton}" HorizontalAlignment="Left" Margin="180,0,0,0" VerticalAlignment="Center" Height="30" Width="85" Background="#FF500000" BorderBrush="White" Cursor="Hand">
+                <Button x:Name="ExportButton" Style="{DynamicResource RoundButton}" HorizontalAlignment="Left" Margin="180,0,0,0" VerticalAlignment="Center" Height="30" Width="85" Background="#FF500000" BorderBrush="White" Cursor="Hand" Click="ExportButton_Click">
                     <DockPanel>
                         <TextBlock x:Name="ExportText" Text="Export" DockPanel.Dock="Right" FontFamily="Open Sans" FontSize="18" Foreground="White" HorizontalAlignment="Right"/>
                         <Image x:Name="ExportImage" Source="/Images/export.png" DockPanel.Dock="Top" Height="20" Width="20" HorizontalAlignment="Left" Margin="0,0,2,0"/>
