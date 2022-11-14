@@ -64,12 +64,11 @@ namespace CASP
             }
             StreamReader reader = new StreamReader(files[filename]);
             var line = reader.ReadLine();
+            if (line == null)
+                goto badFile;
             var vals = line!.Split(',');
             if (vals[0] != "CASP")
-            {
-                MessageBox.Show("Invalid File Given", "Bad File", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes);
-                return false;
-            }
+                goto badFile;
             reader.ReadLine();
             while (!reader.EndOfStream)
             {
@@ -81,6 +80,9 @@ namespace CASP
             }
             data.Add(filename, values);
             return true;
+        badFile:
+            MessageBox.Show("Invalid File Given", "Bad File", MessageBoxButton.OK, MessageBoxImage.Error, MessageBoxResult.Yes);
+            return false;
         }
 
         private void OpenButton_Click(object sender, RoutedEventArgs e)
