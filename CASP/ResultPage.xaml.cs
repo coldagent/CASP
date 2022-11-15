@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Input;
+using System.Windows.Media;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -18,6 +22,7 @@ namespace CASP
         private SaveFileDialog fileSaver = new();
         private Dictionary<string, string> files = new();
         private Dictionary<string, List<double>[]> data = new();
+        
         public ResultPage()
         {
             InitializeComponent();
@@ -53,7 +58,7 @@ namespace CASP
             ResultPlot.Width = ActualWidth - 300;
             ResultPlot.Height = ActualHeight - 70;
         }
-        private void Operation_Click_1(object sender, RoutedEventArgs e)
+        private void Operation_Click(object sender, RoutedEventArgs e)
         {
             Window window = Application.Current.MainWindow;
             MainWindow? window2 = window as MainWindow;
@@ -97,6 +102,7 @@ namespace CASP
         {
             if (fileSelector.ShowDialog() == DialogResult.OK)
             {
+                Mouse.OverrideCursor = System.Windows.Input.Cursors.Wait;
                 string[] names = fileSelector.SafeFileNames;
                 string[] paths = fileSelector.FileNames;
                 for (int i = 0; i < names.Length; i++)
@@ -115,6 +121,7 @@ namespace CASP
                 {
                     FileNames.Items.Add(name);
                 }
+                Mouse.OverrideCursor = null;
             }
         }
 
@@ -141,6 +148,7 @@ namespace CASP
             var moisture_plot = ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][2].ToArray());
             moisture_plot.YAxisIndex = 1;
             ResultPlot.Refresh();
+            
         }
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)
