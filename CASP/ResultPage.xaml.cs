@@ -1,13 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -22,20 +18,25 @@ namespace CASP
         private SaveFileDialog fileSaver = new();
         private Dictionary<string, string> files = new();
         private Dictionary<string, List<double>[]> data = new();
-        
+
         public ResultPage()
         {
             InitializeComponent();
 
             // Initialize OpenFileDialog Directory (Goes to TestData Folder)
+#if DEBUG
             string[] split = Directory.GetCurrentDirectory().Split("\\");
-            string directory = "";            
+            string directory = "";
             for (int i = 0; i < split.Length - 3; i++)
             {
                 directory += split[i] + '\\';
             }
             directory += "TestData";
             fileSelector.InitialDirectory = directory;
+#else
+            string directory = Directory.GetCurrentDirectory();
+            fileSelector.InitialDirectory = directory;
+#endif
             fileSelector.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
             fileSelector.Multiselect = true;
             fileSaver.InitialDirectory = directory;
@@ -89,9 +90,9 @@ namespace CASP
                     values[1].Add(double.Parse(vals[1]));
                     values[2].Add(double.Parse(vals[2]));
                 }
-                catch 
-                { 
-                    return false; 
+                catch
+                {
+                    return false;
                 }
             }
             data.Add(filename, values);
@@ -117,7 +118,7 @@ namespace CASP
                     }
                 }
                 FileNames.Items.Clear();
-                foreach(string name in files.Keys)
+                foreach (string name in files.Keys)
                 {
                     FileNames.Items.Add(name);
                 }
@@ -148,7 +149,7 @@ namespace CASP
             var moisture_plot = ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][2].ToArray());
             moisture_plot.YAxisIndex = 1;
             ResultPlot.Refresh();
-            
+
         }
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)

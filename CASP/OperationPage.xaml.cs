@@ -1,18 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CASP
 {
@@ -88,10 +76,12 @@ namespace CASP
                 caption = "Starting Probe";
                 icon = MessageBoxImage.Information;
                 valid = true;
-            } else if (isNumber && DepthUnit.Text == "Unit")
+            }
+            else if (isNumber && DepthUnit.Text == "Unit")
             {
                 messageBoxText = "Error: Please select a Probe Depth unit";
-            } else if (!isNumber)
+            }
+            else if (!isNumber)
             {
                 messageBoxText = "Error: Please enter a Probe Depth decimal number";
             }
