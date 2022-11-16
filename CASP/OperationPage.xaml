@@ -36,7 +36,7 @@
             <ColumnDefinition/>
             <ColumnDefinition Width="0*"/>
         </Grid.ColumnDefinitions>
-        <Grid x:Name="DepthGrid" Margin="198,237,198,179" Width="405" Height="34">
+        <Grid x:Name="DepthGrid" Margin="198,285,198,131" Width="405" Height="34">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="103*"/>
                 <ColumnDefinition Width="283*"/>
@@ -109,6 +109,7 @@
             </Rectangle>
 
         </Grid>
+        <ProgressBar x:Name="OpProgressBar" Height="30" Margin="240,210,240,210" FontFamily="Open Sans" Width="320" Maximum="300"/>
 
     </Grid>
 </Page>

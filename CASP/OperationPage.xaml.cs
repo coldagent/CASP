@@ -10,7 +10,7 @@ namespace CASP
     public partial class OperationPage : Page
     {
         private System.Windows.Threading.DispatcherTimer dispatcherTimer = new();
-        private int runtime = -1;
+        private bool running = false;
 
         public OperationPage()
         {
@@ -22,16 +22,23 @@ namespace CASP
             this.DepthBox.LostFocus += DepthBox_LostFocus;
             Checkmark.Visibility = Visibility.Hidden;
             dispatcherTimer.Tick += new EventHandler(DispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
             dispatcherTimer.Start();
         }
 
         private void DispatcherTimer_Tick(object? sender, EventArgs e)
         {
-            if (runtime < 0)
+            if (!running)
                 return;
+            else if (OpProgressBar.Value >= 300) 
+            {
+                string messageBoxText = "Ran for " + (OpProgressBar.Value/10).ToString() + " seconds";
+                running = false;
+                OpProgressBar.Value = 0;
+                MessageBox.Show(messageBoxText, "Stopping Probe", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.Yes);
+            }
             else
-                runtime++;
+                OpProgressBar.Value++;
         }
 
         private void OperationPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -63,19 +70,21 @@ namespace CASP
 
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
-            bool valid = false;
-
             bool isNumber = double.TryParse(DepthBox.Text, out _);
             string messageBoxText = "Error: Invalid Probe Depth Input";
             string caption = "Error";
             MessageBoxButton button = MessageBoxButton.OK;
             MessageBoxImage icon = MessageBoxImage.Error;
-            if (isNumber && DepthUnit.Text != "Unit")
+            if (running)
+            {
+                return;
+            }
+            else if (isNumber && DepthUnit.Text != "Unit")
             {
                 messageBoxText = "Probe Depth Entered: " + DepthBox.Text + " " + DepthUnit.Text;
                 caption = "Starting Probe";
                 icon = MessageBoxImage.Information;
-                valid = true;
+                running = true;
             }
             else if (isNumber && DepthUnit.Text == "Unit")
             {
@@ -87,18 +96,17 @@ namespace CASP
             }
 
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
-            if (valid)
-            {
-                runtime++;
-            }
         }
 
         private void StopBtn_Click(object sender, RoutedEventArgs e)
         {
             string messageBoxText = "The Stop Button was pressed";
-            if (runtime >= 0)
-                messageBoxText += "\nRan for " + runtime.ToString() + " seconds";
-            runtime = -1;
+            if (running)
+            {
+                messageBoxText += "\nRan for " + (OpProgressBar.Value/10).ToString() + " seconds";
+                running = false;
+                OpProgressBar.Value = 0;
+            }
             string caption = "Stopping Probe";
             MessageBoxButton button = MessageBoxButton.OK;
             MessageBoxImage icon = MessageBoxImage.Information;
