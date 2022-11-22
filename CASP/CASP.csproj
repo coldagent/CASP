@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>True</UseWindowsForms>
+    <ApplicationIcon>TAM-Logo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +14,11 @@
     <None Remove="Images\file.png" />
     <None Remove="Images\open.png" />
     <None Remove="Images\remove.png" />
+    <None Remove="TAM-Logo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\TAM-Logo.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,6 +31,8 @@
     <Resource Include="Images\open.png" />
     <Resource Include="Images\remove.png" />
     <Resource Include="Images\TAM-PrimaryMarkA.png" />
+    <Resource Include="Images\TAM-Logo.ico" />
+    <Resource Include="TAM-Logo.ico" />
   </ItemGroup>
 
   <ItemGroup>
