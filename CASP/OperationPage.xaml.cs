@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.IO.Ports;
+using System.Diagnostics;
 
 namespace CASP
 {
@@ -10,7 +12,9 @@ namespace CASP
     public partial class OperationPage : Page
     {
         private System.Windows.Threading.DispatcherTimer dispatcherTimer = new();
+        private System.Windows.Threading.DispatcherTimer connectionTimer = new();
         private bool running = false;
+        private SerialPort sp = new("COM2");
 
         public OperationPage()
         {
@@ -20,10 +24,13 @@ namespace CASP
             this.SizeChanged += OperationPage_SizeChanged;
             this.DepthBox.GotFocus += DepthBox_GotFocus;
             this.DepthBox.LostFocus += DepthBox_LostFocus;
-            Checkmark.Visibility = Visibility.Hidden;
+            sp.Open();
             dispatcherTimer.Tick += new EventHandler(DispatcherTimer_Tick);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
             dispatcherTimer.Start();
+            connectionTimer.Tick += new EventHandler(checkConnection);
+            connectionTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+            connectionTimer.Start();
         }
 
         private void DispatcherTimer_Tick(object? sender, EventArgs e)
@@ -120,6 +127,26 @@ namespace CASP
             MessageBoxButton button = MessageBoxButton.OK;
             MessageBoxImage icon = MessageBoxImage.Information;
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+            sp.Close();
+        }
+        private void checkConnection(object? sender, EventArgs e)
+        {
+            /*string text = sp.ReadExisting();
+            if (!string.IsNullOrEmpty(text)) 
+            {
+                Trace.WriteLine(text);
+            }*/
+            if (!sp.IsOpen)
+            {
+                Checkmark.Visibility = Visibility.Hidden;
+                Xmark.Visibility = Visibility.Visible;
+                ConnectionLabel.Content = "Disconnected";
+            } else
+            {
+                Checkmark.Visibility = Visibility.Visible;
+                Xmark.Visibility = Visibility.Hidden;
+                ConnectionLabel.Content = "Connected";
+            }
         }
     }
 }
