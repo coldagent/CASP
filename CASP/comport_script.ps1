@@ -6,8 +6,12 @@ function read-com {
     $port.Open()
     do {
         $line = $port.ReadLine()
-        
-        Write-Host $line # Do stuff here
+        $line = $line -replace "`r",""
+        if ($line[0] -eq "$") {
+            Write-Host "Command: `{$line`}"
+        } else {
+            Write-Host "Data: `{$line`}"
+        }
     }
     while ($port.IsOpen)
 }
