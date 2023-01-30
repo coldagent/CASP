@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.IO.Ports;
 using System.Diagnostics;
+using System.Threading;
 
 namespace CASP
 {
@@ -20,18 +21,26 @@ namespace CASP
         {
             InitializeComponent();
 
-            // Serial Port Initialization
-            sp = new(portName);
-            sp.DataReceived += new SerialDataReceivedEventHandler(sp_DataReceived);
-
             // Initialize Event.
             this.SizeChanged += OperationPage_SizeChanged;
             this.DepthBox.GotFocus += DepthBox_GotFocus;
             this.DepthBox.LostFocus += DepthBox_LostFocus;
+            Checkmark.Visibility = Visibility.Hidden;
+            Xmark.Visibility = Visibility.Visible;
+            ConnectionLabel.Content = "Disconnected";
             dispatcherTimer.Tick += new EventHandler(DispatcherTimer_Tick);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
             dispatcherTimer.Start();
 
+            // Serial Port Initialization
+            sp = new(portName);
+            sp.BaudRate = 9600;
+            sp.ReadTimeout = 5000;
+            sp.WriteTimeout = 5000;
+            sp.DataReceived += new SerialDataReceivedEventHandler(sp_DataReceived);
+            Thread connection_thread = new(CheckConnection);
+            connection_thread.IsBackground = true;
+            connection_thread.Start();
         }
 
         private void DispatcherTimer_Tick(object? sender, EventArgs e)
@@ -130,29 +139,52 @@ namespace CASP
             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
             sp.Close();
         }
-        private void CheckConnection(object? sender, EventArgs e)
+        private void CheckConnection()
         {
-            /*string text = sp.ReadExisting();
-            if (!string.IsNullOrEmpty(text)) 
+            while (true)
             {
-                Trace.WriteLine(text);
-            }*/
-            string[] ports = SerialPort.GetPortNames();            
-            for (int i = 0; i < ports.Length; i++)
-            {
+                string[] ports = SerialPort.GetPortNames();
+                for (int i = 0; i < ports.Length; i++)
+                {
+                    Trace.WriteLine("Trying Port: " + ports[i]);
+                    try
+                    {
+                        sp.PortName = ports[i];
+                        sp.Open();
+                        sp.WriteLine("%handshake");
+                        if (sp.ReadLine().Equals("%connected"))
+                        {
+                            sp.Close();
+                            this.Dispatcher.Invoke(() => {
+                                Checkmark.Visibility = Visibility.Visible;
+                                Xmark.Visibility = Visibility.Hidden;
+                                ConnectionLabel.Content = "Connected";
+                            });
 
+                            Trace.WriteLine("PortName= " + ports[i]);
+                            return;
+                        }
+                        sp.Close();
+                    }
+                    catch (Exception e)
+                    {
+                        if (e.GetType() == typeof(TimeoutException))
+                        {
+                            sp.Close();
+                            Trace.WriteLine("Timeout for " + ports[i]);
+                        } else if (e.GetType() == typeof(UnauthorizedAccessException))
+                        {
+                            Trace.WriteLine("Port in use: " + ports[i]);
+                        }
+                        else
+                        {
+                            Trace.WriteLine("Invalid Port: " + ports[i]);
+                        }
+                    }
+                }
+                Thread.Sleep(10500);
             }
-            if (!sp.IsOpen)
-            {
-                Checkmark.Visibility = Visibility.Hidden;
-                Xmark.Visibility = Visibility.Visible;
-                ConnectionLabel.Content = "Disconnected";
-            } else
-            {
-                Checkmark.Visibility = Visibility.Visible;
-                Xmark.Visibility = Visibility.Hidden;
-                ConnectionLabel.Content = "Connected";
-            }
+            
         }
 
         void sp_DataReceived(object sender, SerialDataReceivedEventArgs e)
