@@ -11,8 +11,8 @@ function receive-command {
     switch ($command) 
     {
         "%handshake" {
-            Write-Host "Sending: %connected"
-            $port.WriteLine("%connected")
+            Write-Host "Sending: connected"
+            $port.WriteLine("connected")
         }
         Default {
             Write-Host "Unknown Command"

@@ -152,15 +152,8 @@ namespace CASP
                         sp.PortName = ports[i];
                         sp.Open();
                         sp.WriteLine("%handshake");
-                        if (sp.ReadLine().Equals("%connected"))
+                        if (ConnectionLabel.Content.Equals("Connected"))
                         {
-                            sp.Close();
-                            this.Dispatcher.Invoke(() => {
-                                Checkmark.Visibility = Visibility.Visible;
-                                Xmark.Visibility = Visibility.Hidden;
-                                ConnectionLabel.Content = "Connected";
-                            });
-
                             Trace.WriteLine("PortName= " + ports[i]);
                             return;
                         }
@@ -182,14 +175,28 @@ namespace CASP
                         }
                     }
                 }
-                Thread.Sleep(10500);
+                Thread.Sleep(10000);
             }
             
         }
 
         void sp_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
+            string line = sp.ReadLine();
+            if (running)
+            {
 
+            } else
+            {
+                if (line.Equals("connected"))
+                {
+                    this.Dispatcher.Invoke(() => {
+                        Checkmark.Visibility = Visibility.Visible;
+                        Xmark.Visibility = Visibility.Hidden;
+                        ConnectionLabel.Content = "Connected";
+                    });
+                }
+            }
         }
     }
 }
