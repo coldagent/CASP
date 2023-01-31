@@ -14,6 +14,7 @@ namespace CASP
     {
         private System.Windows.Threading.DispatcherTimer dispatcherTimer = new();
         private bool running = false;
+        private bool connected = false;
         private SerialPort sp;
         private string portName = "COM2";
 
@@ -152,7 +153,8 @@ namespace CASP
                         sp.PortName = ports[i];
                         sp.Open();
                         sp.WriteLine("%handshake");
-                        if (ConnectionLabel.Content.Equals("Connected"))
+                        Thread.Sleep(5000);
+                        if (connected)
                         {
                             Trace.WriteLine("PortName= " + ports[i]);
                             return;
@@ -175,37 +177,51 @@ namespace CASP
                         }
                     }
                 }
-                Thread.Sleep(10000);
             }
-            
         }
 
         void sp_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            string line = sp.ReadLine();
-            if (running)
+            try
             {
-
-            } else
-            {
-                if (line.Equals("connected"))
+                string line = sp.ReadLine();
+                if (running)
                 {
-                    this.Dispatcher.Invoke(() => {
-                        Checkmark.Visibility = Visibility.Visible;
-                        Xmark.Visibility = Visibility.Hidden;
-                        ConnectionLabel.Content = "Connected";
-                    });
+
                 }
+                else
+                {
+                    if (line.Equals("connected"))
+                    {
+                        connected = true;
+                        this.Dispatcher.Invoke(() => {
+                            Checkmark.Visibility = Visibility.Visible;
+                            Xmark.Visibility = Visibility.Hidden;
+                            ConnectionLabel.Content = "Connected";
+                        });
+                    }
+                }
+            } catch
+            {
+                Trace.WriteLine("Error in DataReceived");
             }
         }
 
         private void RaiseBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            if (!sp.IsOpen)
+            {
+                sp.Open();
+            }
+            sp.WriteLine("%raise");
         }
         private void LowerBtn_Click(object sender, RoutedEventArgs e)
         {
-
+            if (!sp.IsOpen)
+            {
+                sp.Open();
+            }
+            sp.WriteLine("%lower");
         }
     }
 }

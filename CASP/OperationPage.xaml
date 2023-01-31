@@ -16,6 +16,13 @@
                 </Style>
             </Style.Resources>
         </Style>
+        <Style TargetType="RepeatButton" x:Key="RoundRepeatButton">
+            <Style.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="5" />
+                </Style>
+            </Style.Resources>
+        </Style>
         <Style TargetType="Label" x:Key="RoundLabel">
             <Style.Resources>
                 <Style TargetType="Border">
@@ -56,8 +63,8 @@
             <Button Style="{DynamicResource RoundButton}" x:Name="StartBtn" Content="Start" Height="50" VerticalAlignment="Center" Width="140" FontSize="25" Foreground="Green" Click="StartBtn_Click" FontFamily="Open Sans" Cursor="Hand" Margin="0,0,380,0"/>
             <Button Style="{DynamicResource RoundButton}" x:Name="StopBtn" Content="Stop" VerticalAlignment="Center" Width="140" Height="50" FontSize="25" Foreground="Red" Click="StopBtn_Click" FontFamily="Open Sans" Cursor="Hand" Margin="160,0,220,0"/>
             <Button Style="{DynamicResource RoundButton}" x:Name="ResetBtn" Content="Reset" Height="50" Margin="320,0,60,0" VerticalAlignment="Center" Width="140" FontFamily="Open Sans" FontSize="25" Click="ResetBtn_Click" Cursor="Hand"/>
-            <Button Style="{DynamicResource RoundButton}" x:Name="RaiseBtn" Content="▲" Width="40" Height="24" VerticalAlignment="Top" Margin="480,0,0,0" Click="RaiseBtn_Click" FontFamily="Open Sans" Cursor="Hand" FontSize="16"/>
-            <Button Style="{DynamicResource RoundButton}" x:Name="LowerBtn" Content="▼" Width="40" Height="24" VerticalAlignment="Top" Margin="480,26,0,0" Click="LowerBtn_Click" FontFamily="Open Sans" Cursor="Hand" FontSize="16"/>
+            <RepeatButton Style="{DynamicResource RoundRepeatButton}" x:Name="RaiseBtn" Content="▲" Width="40" Height="24" VerticalAlignment="Top" Margin="480,0,0,0" Click="RaiseBtn_Click" FontFamily="Open Sans" Cursor="Hand" FontSize="16" Interval="100"/>
+            <RepeatButton Style="{DynamicResource RoundRepeatButton}" x:Name="LowerBtn" Content="▼" Width="40" Height="24" VerticalAlignment="Bottom" Margin="480,0,0,0" Click="LowerBtn_Click" FontFamily="Open Sans" Cursor="Hand" FontSize="16" Interval="100"/>
 
         </Grid>
         <Label Style="{DynamicResource RoundLabel}" x:Name="ConnectionLabel" Content="Disconnected" Margin="328,122,328,293" FontFamily="Open Sans" FontSize="18" Background="LightGray" IsHitTestVisible="False" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" Width="144" Height="35"/>

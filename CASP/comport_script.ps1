@@ -13,9 +13,17 @@ function receive-command {
         "%handshake" {
             Write-Host "Sending: connected"
             $port.WriteLine("connected")
+            Break
+        }
+        "%raise" {
+            Break
+        }
+        "%lower" {
+            Break
         }
         Default {
             Write-Host "Unknown Command"
+            Break
         }
     }
 }
