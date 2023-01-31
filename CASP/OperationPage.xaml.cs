@@ -198,5 +198,14 @@ namespace CASP
                 }
             }
         }
+
+        private void RaiseBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+        private void LowerBtn_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
