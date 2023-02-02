@@ -21,6 +21,12 @@ function receive-command {
         "%lower" {
             Break
         }
+        "%reset" {
+            Start-Sleep -Seconds 10
+            Write-Host "Sending: done"
+            $port.WriteLine("done")
+            Break
+        }
         Default {
             Write-Host "Unknown Command"
             Break

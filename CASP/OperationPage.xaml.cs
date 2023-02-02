@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.IO.Ports;
 using System.Diagnostics;
 using System.Threading;
+using System.Diagnostics.Eventing.Reader;
 
 namespace CASP
 {
@@ -12,8 +13,8 @@ namespace CASP
     /// </summary>
     public partial class OperationPage : Page
     {
-        private System.Windows.Threading.DispatcherTimer dispatcherTimer = new();
         private bool running = false;
+        private bool resetting = false;
         private bool connected = false;
         private SerialPort sp;
         private string portName = "COM2";
@@ -29,9 +30,9 @@ namespace CASP
             Checkmark.Visibility = Visibility.Hidden;
             Xmark.Visibility = Visibility.Visible;
             ConnectionLabel.Content = "Disconnected";
-            dispatcherTimer.Tick += new EventHandler(DispatcherTimer_Tick);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
-            dispatcherTimer.Start();
+            Thread progressbar_thread = new(UpdateProgressBar);
+            progressbar_thread.IsBackground = true;
+            progressbar_thread.Start();
 
             // Serial Port Initialization
             sp = new(portName);
@@ -44,19 +45,30 @@ namespace CASP
             connection_thread.Start();
         }
 
-        private void DispatcherTimer_Tick(object? sender, EventArgs e)
+        private void UpdateProgressBar()
         {
-            if (!running)
-                return;
-            else if (OpProgressBar.Value >= 300) 
+            double progress = 0;
+            while (true)
             {
-                string messageBoxText = "Ran for " + (OpProgressBar.Value/10).ToString() + " seconds";
-                running = false;
-                OpProgressBar.Value = 0;
-                MessageBox.Show(messageBoxText, "Stopping Probe", MessageBoxButton.OK, MessageBoxImage.Information, MessageBoxResult.Yes);
+                try
+                {
+                    this.Dispatcher.Invoke(() => { progress = OpProgressBar.Value; });
+                    if ((!running && !resetting && progress == 0) || (resetting && progress >= 95))
+                        continue;
+                    else if (!running && !resetting && progress >= 1)
+                    {
+                        this.Dispatcher.Invoke(() => { OpProgressBar.Value = 100; });
+                        Thread.Sleep(2000);
+                        this.Dispatcher.Invoke(() => { OpProgressBar.Value = 0; });
+                    }
+                    else
+                        this.Dispatcher.Invoke(() => { OpProgressBar.Value++; });
+                } catch
+                {
+                    Trace.WriteLine("Error in UpdateProgressBar");
+                }
+                Thread.Sleep(100);
             }
-            else
-                OpProgressBar.Value++;
         }
 
         private void OperationPage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -93,8 +105,13 @@ namespace CASP
             string caption = "Error";
             MessageBoxButton button = MessageBoxButton.OK;
             MessageBoxImage icon = MessageBoxImage.Error;
-            if (running)
+            if (running || resetting)
             {
+                messageBoxText = "Operation In-Progress. Please wait.";
+                caption = "Operation In-Progress";
+                button = MessageBoxButton.OK;
+                icon = MessageBoxImage.Information;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
                 return;
             }
             else if (isNumber && DepthUnit.Text != "Unit")
@@ -133,12 +150,24 @@ namespace CASP
 
         private void ResetBtn_Click(object sender, RoutedEventArgs e)
         {
-            string messageBoxText = "The Reset Button was pressed";
-            string caption = "Resetting Probe";
-            MessageBoxButton button = MessageBoxButton.OK;
-            MessageBoxImage icon = MessageBoxImage.Information;
-            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
-            sp.Close();
+            if (resetting || running)
+            {
+                string messageBoxText = "Operation In-Progress. Please wait.";
+                string caption = "Operation In-Progress";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Information;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
+            }
+            resetting = true;
+            try
+            {
+                sp.WriteLine("%reset");
+            } catch
+            {
+                Trace.WriteLine("Error in ResetBtn_Click");
+            }
+
         }
         private void CheckConnection()
         {
@@ -198,6 +227,17 @@ namespace CASP
                             Checkmark.Visibility = Visibility.Visible;
                             Xmark.Visibility = Visibility.Hidden;
                             ConnectionLabel.Content = "Connected";
+                        });
+                    } else if (resetting && line.Equals("done"))
+                    {
+                        resetting = false;
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            string messageBoxText = "The probe was reset";
+                            string caption = "Reset Probe";
+                            MessageBoxButton button = MessageBoxButton.OK;
+                            MessageBoxImage icon = MessageBoxImage.Information;
+                            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
                         });
                     }
                 }

@@ -118,7 +118,7 @@
             </Rectangle>
 
         </Grid>
-        <ProgressBar x:Name="OpProgressBar" Height="30" Margin="240,210,240,210" FontFamily="Open Sans" Width="320" Maximum="300"/>
+        <ProgressBar x:Name="OpProgressBar" Height="30" Margin="240,210,240,210" FontFamily="Open Sans" Width="320" Maximum="100"/>
 
     </Grid>
 </Page>
