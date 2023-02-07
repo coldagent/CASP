@@ -7,6 +7,7 @@ using System.Threading;
 using System.Diagnostics.Eventing.Reader;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Drawing;
+using System.IO;
 
 namespace CASP
 {
@@ -20,6 +21,7 @@ namespace CASP
         private bool connected = false;
         private SerialPort sp;
         private string portName = "COM2";
+        private string currentFile = "";
 
         public OperationPage()
         {
@@ -64,7 +66,7 @@ namespace CASP
                 {
                     this.Dispatcher.Invoke(() => { progress = OpProgressBar.Value; });
                 } catch { Trace.WriteLine("Error in UpdateProgressBar"); continue; }
-                if ((!running && !resetting && progress == 0) || (resetting && progress >= 95)) { }
+                if ((!running && !resetting && progress == 0) || ((resetting || running) && progress >= 95)) { }
                 else if (!running && !resetting && progress >= 1)
                 {
                     this.Dispatcher.Invoke(() => { OpProgressBar.Value = 100; });
@@ -105,55 +107,94 @@ namespace CASP
                 DepthBox.Text = "Enter the probe depth";
             }
         }
-
+        private int CalculateDepth()
+        {
+            double depth_double = double.Parse(DepthBox.Text);
+            int depth_int = 0;
+            switch (DepthUnit.Text)
+            {
+                case "in.":
+                    depth_int = (int)(depth_double * 25.4);
+                    break;
+                case "ft":
+                    depth_int = (int)(depth_double * 304.8);
+                    break;
+                case "cm":
+                    depth_int = (int)(depth_double * 10);
+                    break;
+                case "m":
+                    depth_int = (int)(depth_double * 1000);
+                    break;
+            }   
+            return depth_int;
+        }
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
             bool isNumber = double.TryParse(DepthBox.Text, out _);
-            string messageBoxText = "Error: Invalid Probe Depth Input";
-            string caption = "Error";
-            MessageBoxButton button = MessageBoxButton.OK;
-            MessageBoxImage icon = MessageBoxImage.Error;
             if (running || resetting)
             {
-                messageBoxText = "Please wait for the current operation to finish.";
-                caption = "Operation In-Progress";
-                button = MessageBoxButton.OK;
-                icon = MessageBoxImage.Information;
+                string messageBoxText = "Please wait for the current operation to finish.";
+                string caption = "Operation In-Progress";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Information;
                 MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
                 return;
             }
-            else if (isNumber && DepthUnit.Text != "Unit")
+            if (DepthUnit.Text == "Unit")
             {
-                messageBoxText = "Probe Depth Entered: " + DepthBox.Text + " " + DepthUnit.Text;
-                caption = "Starting Probe";
-                icon = MessageBoxImage.Information;
-                running = true;
-            }
-            else if (isNumber && DepthUnit.Text == "Unit")
-            {
-                messageBoxText = "Error: Please select a Probe Depth unit";
+                string messageBoxText = "Error: Please select a Probe Depth unit";
+                string caption = "Error";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Error;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
             }
             else if (!isNumber)
             {
-                messageBoxText = "Error: Please enter a Probe Depth decimal number";
+                string messageBoxText = "Error: Please enter a Probe Depth decimal number";
+                string caption = "Error";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Error;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
+            } else
+            {
+                currentFile = DateTime.Now.ToString("yyyyMMMdd HHmm") + ".csv";
+                int depth = CalculateDepth();
+                running = true;
+                try
+                {
+                    sp.WriteLine("%start " + depth.ToString());
+                }
+                catch
+                {
+                    Trace.WriteLine("Error in Start Click");
+                    ConnectionLost();
+                }
             }
-
-            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
         }
 
         private void StopBtn_Click(object sender, RoutedEventArgs e)
         {
-            string messageBoxText = "The Stop Button was pressed";
-            if (running)
+            if (running || resetting)
             {
-                messageBoxText += "\nRan for " + (OpProgressBar.Value/10).ToString() + " seconds";
                 running = false;
+                resetting = false;
                 OpProgressBar.Value = 0;
+                try
+                {
+                    sp.WriteLine("%stop");
+                } catch
+                {
+                    Trace.WriteLine("Error in Stop Click");
+                    ConnectionLost();
+                }
+                string messageBoxText = "Stopping the current operation.";
+                string caption = "Stopping Operation";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Information;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
             }
-            string caption = "Stopping Probe";
-            MessageBoxButton button = MessageBoxButton.OK;
-            MessageBoxImage icon = MessageBoxImage.Information;
-            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
         }
 
         private void ResetBtn_Click(object sender, RoutedEventArgs e)
@@ -234,6 +275,27 @@ namespace CASP
                 string line = sp.ReadLine();
                 if (running)
                 {
+                    string currentPath = Environment.CurrentDirectory + "\\ReceivedData\\" + currentFile;
+                    if (!Directory.Exists(Environment.CurrentDirectory + "\\ReceivedData"))
+                    {
+                        Directory.CreateDirectory(Environment.CurrentDirectory + "\\ReceivedData");
+                    }
+                    if (!File.Exists(currentPath))
+                    {
+                        using (StreamWriter sw = File.CreateText(currentPath))
+                        {
+                            sw.WriteLine("CASP");
+                            sw.WriteLine("Depth,Psi,Conductivity");
+                        }
+                    }
+                    if (line.Equals("done"))
+                    {
+                        running = false;
+                        return;
+                    } else
+                    {
+                        File.AppendAllText(currentPath, line + "\n");
+                    }
 
                 }
                 else if (resetting && line.Equals("done"))
@@ -265,6 +327,7 @@ namespace CASP
             } catch
             {
                 Trace.WriteLine("Error in DataReceived");
+                Trace.WriteLine(Environment.CurrentDirectory);
                 ConnectionLost();
             }
         }

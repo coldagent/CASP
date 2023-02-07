@@ -8,7 +8,7 @@ function receive-command {
     )
 
     Write-Host "Command: `{$command`}"
-    switch ($command) 
+    switch -Wildcard ($command) 
     {
         "%handshake" {
             Write-Host "Sending: connected"
@@ -23,6 +23,17 @@ function receive-command {
         }
         "%reset" {
             Start-Sleep -Seconds 10
+            Write-Host "Sending: done"
+            $port.WriteLine("done")
+            Break
+        }
+        "%stop" {
+
+        }
+        "%start *" {
+            Write-Host "Sending: 1,2,3"
+            $port.WriteLine("1,2,3")
+            Start-Sleep -Seconds 5
             Write-Host "Sending: done"
             $port.WriteLine("done")
             Break
