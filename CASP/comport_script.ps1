@@ -36,6 +36,8 @@ function receive-command {
 
 function read-com {
     $port.Open()
+    $port.DiscardInBuffer()
+    $port.DiscardOutBuffer()
     do {
         $line = $port.ReadLine()
         $line = $line -replace "`r",""

@@ -5,6 +5,8 @@ using System.IO.Ports;
 using System.Diagnostics;
 using System.Threading;
 using System.Diagnostics.Eventing.Reader;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using System.Drawing;
 
 namespace CASP
 {
@@ -48,25 +50,31 @@ namespace CASP
         private void UpdateProgressBar()
         {
             double progress = 0;
+            int timeout_watcher = 0;
             while (true)
             {
+                if (resetting || running) { timeout_watcher++; }
+                if (timeout_watcher > 300)
+                {
+                    timeout_watcher = 0;
+                    this.Dispatcher.Invoke(() => { OpProgressBar.Value = 0; });
+                    ConnectionLost();
+                }
                 try
                 {
                     this.Dispatcher.Invoke(() => { progress = OpProgressBar.Value; });
-                    if ((!running && !resetting && progress == 0) || (resetting && progress >= 95))
-                        continue;
-                    else if (!running && !resetting && progress >= 1)
-                    {
-                        this.Dispatcher.Invoke(() => { OpProgressBar.Value = 100; });
-                        Thread.Sleep(2000);
-                        this.Dispatcher.Invoke(() => { OpProgressBar.Value = 0; });
-                    }
-                    else
-                        this.Dispatcher.Invoke(() => { OpProgressBar.Value++; });
-                } catch
+                } catch { Trace.WriteLine("Error in UpdateProgressBar"); continue; }
+                if ((!running && !resetting && progress == 0) || (resetting && progress >= 95)) { }
+                else if (!running && !resetting && progress >= 1)
                 {
-                    Trace.WriteLine("Error in UpdateProgressBar");
+                    this.Dispatcher.Invoke(() => { OpProgressBar.Value = 100; });
+                    Thread.Sleep(2000);
+                    this.Dispatcher.Invoke(() => { OpProgressBar.Value = 0; });
+                    timeout_watcher = 0;
                 }
+                else
+                    this.Dispatcher.Invoke(() => { OpProgressBar.Value++; });
+                
                 Thread.Sleep(100);
             }
         }
@@ -107,7 +115,7 @@ namespace CASP
             MessageBoxImage icon = MessageBoxImage.Error;
             if (running || resetting)
             {
-                messageBoxText = "Operation In-Progress. Please wait.";
+                messageBoxText = "Please wait for the current operation to finish.";
                 caption = "Operation In-Progress";
                 button = MessageBoxButton.OK;
                 icon = MessageBoxImage.Information;
@@ -150,9 +158,18 @@ namespace CASP
 
         private void ResetBtn_Click(object sender, RoutedEventArgs e)
         {
+            if (!connected)
+            {
+                string messageBoxText = "Please connect the Controller to the Windows Computer";
+                string caption = "Controller Not Connected";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Error;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
+            }
             if (resetting || running)
             {
-                string messageBoxText = "Operation In-Progress. Please wait.";
+                string messageBoxText = "Please wait for the current operation to finish.";
                 string caption = "Operation In-Progress";
                 MessageBoxButton button = MessageBoxButton.OK;
                 MessageBoxImage icon = MessageBoxImage.Information;
@@ -166,6 +183,7 @@ namespace CASP
             } catch
             {
                 Trace.WriteLine("Error in ResetBtn_Click");
+                ConnectionLost();
             }
 
         }
@@ -218,7 +236,21 @@ namespace CASP
                 {
 
                 }
-                else
+                else if (resetting && line.Equals("done"))
+                {
+                    resetting = false;
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        string messageBoxText = "The probe was reset";
+                        string caption = "Reset Probe";
+                        MessageBoxButton button = MessageBoxButton.OK;
+                        MessageBoxImage icon = MessageBoxImage.Information;
+                        MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                    });
+                } else if (resetting && !line.Equals("done"))
+                {
+                    ConnectionLost();
+                } else
                 {
                     if (line.Equals("connected"))
                     {
@@ -228,40 +260,106 @@ namespace CASP
                             Xmark.Visibility = Visibility.Hidden;
                             ConnectionLabel.Content = "Connected";
                         });
-                    } else if (resetting && line.Equals("done"))
-                    {
-                        resetting = false;
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            string messageBoxText = "The probe was reset";
-                            string caption = "Reset Probe";
-                            MessageBoxButton button = MessageBoxButton.OK;
-                            MessageBoxImage icon = MessageBoxImage.Information;
-                            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
-                        });
-                    }
+                    } 
                 }
             } catch
             {
                 Trace.WriteLine("Error in DataReceived");
+                ConnectionLost();
             }
         }
 
         private void RaiseBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (!sp.IsOpen)
+            if (!connected)
             {
-                sp.Open();
+                string messageBoxText = "Please connect the Controller to the Windows Computer";
+                string caption = "Controller Not Connected";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Error;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
             }
-            sp.WriteLine("%raise");
+            if (running || resetting)
+            {
+                string messageBoxText = "Please wait for the current operation to finish.";
+                string caption = "Operation In-Progress";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Information;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
+            }
+            try
+            {
+                if (!sp.IsOpen)
+                {
+                    sp.Open();
+                }
+                sp.WriteLine("%raise");
+            } catch
+            {
+                Trace.WriteLine("Error in Raise Click");
+                ConnectionLost();
+            }
+            
         }
         private void LowerBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (!sp.IsOpen)
+            if (!connected)
             {
-                sp.Open();
+                string messageBoxText = "Please connect the Controller to the Windows Computer";
+                string caption = "Controller Not Connected";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Error;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
             }
-            sp.WriteLine("%lower");
+            if (running || resetting)
+            {
+                string messageBoxText = "Please wait for the current operation to finish.";
+                string caption = "Operation In-Progress";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Information;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                return;
+            }
+            try
+            {
+                if (!sp.IsOpen)
+                {
+                    sp.Open();
+                }
+                sp.WriteLine("%lower");
+            } catch
+            {
+                Trace.WriteLine("Error in Lower Click");
+                ConnectionLost();
+            }
+            
+        }
+        private void ConnectionLost()
+        {
+            resetting = false;
+            running = false;
+            connected = false;
+            // Update UI elements
+            this.Dispatcher.Invoke(() => {
+                Checkmark.Visibility = Visibility.Hidden;
+                Xmark.Visibility = Visibility.Visible;
+                ConnectionLabel.Content = "Disconnected";
+                string messageBoxText = "Controller Connection was lost. Please reconnect the controller and try again";
+                string caption = "Controller Disconnected";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Error;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+            });
+            //Run connection function again
+            sp.DiscardOutBuffer();
+            sp.DiscardInBuffer();
+            sp.Close();
+            Thread connection_thread = new(CheckConnection);
+            connection_thread.IsBackground = true;
+            connection_thread.Start();
         }
     }
 }
