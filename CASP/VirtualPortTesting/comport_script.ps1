@@ -1,6 +1,7 @@
 ﻿
 $COM = "COM4"
-$port= new-Object System.IO.Ports.SerialPort $COM,9600,None,8,one
+$port = new-Object System.IO.Ports.SerialPort $COM,9600,None,8,one
+$stop = $false
 
 function receive-command {
     param (
@@ -22,18 +23,29 @@ function receive-command {
             Break
         }
         "%reset" {
-            Start-Sleep -Seconds 10
+            $count = 0
+            do {
+                Start-Sleep -Milliseconds 100
+                $count += 1
+            } while (($stop -eq $false) -and ($count -le 100))
+            $stop = $false
             Write-Host "Sending: done"
             $port.WriteLine("done")
             Break
         }
         "%stop" {
-
+            $stop = $true
+            Break
         }
         "%start *" {
-            Write-Host "Sending: 1,2,3"
-            $port.WriteLine("1,2,3")
-            Start-Sleep -Seconds 5
+            foreach ($line in Get-Content .\TestData.csv) {
+                if ($stop -eq $true) {
+                    Break
+                }
+                Write-Host "Sending: $line"
+                $port.WriteLine($line)
+            }
+            $stop = $false
             Write-Host "Sending: done"
             $port.WriteLine("done")
             Break
@@ -55,7 +67,7 @@ function read-com {
         if ($line[0] -eq "%") {
             receive-command -command $line
         } else {
-            Write-Host "Data: `{$line`}"
+            Write-Host "Other: `{$line`}"
         }
     }
     while ($port.IsOpen)

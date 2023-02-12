@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ReceivedData\**" />
+    <EmbeddedResource Remove="ReceivedData\**" />
+    <None Remove="ReceivedData\**" />
+    <Page Remove="ReceivedData\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Images\export.png" />
     <None Remove="Images\file.png" />
     <None Remove="Images\open.png" />
@@ -37,7 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ReceivedData\" />
     <Folder Include="TestData\" />
   </ItemGroup>
 

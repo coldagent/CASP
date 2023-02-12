@@ -43,6 +43,8 @@ namespace CASP
             sp.BaudRate = 9600;
             sp.ReadTimeout = 5000;
             sp.WriteTimeout = 5000;
+            sp.ReadBufferSize = 1048576;
+            sp.NewLine = "\n";
             sp.DataReceived += new SerialDataReceivedEventHandler(sp_DataReceived);
             Thread connection_thread = new(CheckConnection);
             connection_thread.IsBackground = true;
@@ -273,6 +275,7 @@ namespace CASP
             try
             {
                 string line = sp.ReadLine();
+                Debug.WriteLine(line);
                 if (running)
                 {
                     string currentPath = Environment.CurrentDirectory + "\\ReceivedData\\" + currentFile;
@@ -291,7 +294,14 @@ namespace CASP
                     if (line.Equals("done"))
                     {
                         running = false;
-                        return;
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            string messageBoxText = "The probe is done taking measurements.";
+                            string caption = "Measurements Finished";
+                            MessageBoxButton button = MessageBoxButton.OK;
+                            MessageBoxImage icon = MessageBoxImage.Information;
+                            MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                        });
                     } else
                     {
                         File.AppendAllText(currentPath, line + "\n");
@@ -311,6 +321,7 @@ namespace CASP
                     });
                 } else if (resetting && !line.Equals("done"))
                 {
+                    Trace.WriteLine("Strange Error");
                     ConnectionLost();
                 } else
                 {
@@ -354,10 +365,6 @@ namespace CASP
             }
             try
             {
-                if (!sp.IsOpen)
-                {
-                    sp.Open();
-                }
                 sp.WriteLine("%raise");
             } catch
             {
@@ -388,10 +395,6 @@ namespace CASP
             }
             try
             {
-                if (!sp.IsOpen)
-                {
-                    sp.Open();
-                }
                 sp.WriteLine("%lower");
             } catch
             {
