@@ -45,6 +45,8 @@ namespace CASP
             sp.WriteTimeout = 5000;
             sp.ReadBufferSize = 1048576;
             sp.NewLine = "\n";
+            sp.DtrEnable = true;
+            sp.RtsEnable = true;
             sp.DataReceived += new SerialDataReceivedEventHandler(sp_DataReceived);
             Thread connection_thread = new(CheckConnection);
             connection_thread.IsBackground = true;
@@ -306,7 +308,6 @@ namespace CASP
                     {
                         File.AppendAllText(currentPath, line + "\n");
                     }
-
                 }
                 else if (resetting && line.Equals("done"))
                 {
@@ -340,6 +341,10 @@ namespace CASP
                 Trace.WriteLine("Error in DataReceived");
                 Trace.WriteLine(Environment.CurrentDirectory);
                 ConnectionLost();
+            }
+            if (sp.BytesToRead > 0)
+            {
+                sp_DataReceived(sender, e);
             }
         }
 

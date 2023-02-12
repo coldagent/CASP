@@ -39,6 +39,7 @@ function receive-command {
         }
         "%start *" {
             foreach ($line in Get-Content .\TestData.csv) {
+                $line = $line -replace "`r",""
                 if ($stop -eq $true) {
                     Break
                 }
@@ -62,6 +63,9 @@ function read-com {
     $port.DiscardInBuffer()
     $port.DiscardOutBuffer()
     do {
+        if ($port.BytesToRead -eq 0) {
+            Continue
+        }
         $line = $port.ReadLine()
         $line = $line -replace "`r",""
         if ($line[0] -eq "%") {
