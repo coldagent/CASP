@@ -19,6 +19,7 @@ namespace CASP
         private bool running = false;
         private bool resetting = false;
         private bool connected = false;
+        private bool stopping = false;
         private SerialPort sp;
         private string portName = "COM2";
         private string currentFile = "";
@@ -184,6 +185,7 @@ namespace CASP
             {
                 running = false;
                 resetting = false;
+                stopping = true;
                 OpProgressBar.Value = 0;
                 try
                 {
@@ -304,7 +306,8 @@ namespace CASP
                             MessageBoxImage icon = MessageBoxImage.Information;
                             MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
                         });
-                    } else
+                    }
+                    else
                     {
                         File.AppendAllText(currentPath, line + "\n");
                     }
@@ -320,11 +323,24 @@ namespace CASP
                         MessageBoxImage icon = MessageBoxImage.Information;
                         MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
                     });
-                } else if (resetting && !line.Equals("done"))
+                }
+                else if (resetting && !line.Equals("done"))
                 {
                     Trace.WriteLine("Strange Error");
                     ConnectionLost();
-                } else
+                } 
+                else if (stopping && line.Equals("done")) { 
+                    stopping = false;
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        string messageBoxText = "The operation was stopped";
+                        string caption = "Operation Stopped";
+                        MessageBoxButton button = MessageBoxButton.OK;
+                        MessageBoxImage icon = MessageBoxImage.Information;
+                        MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
+                    });
+                }
+                else
                 {
                     if (line.Equals("connected"))
                     {
@@ -334,7 +350,7 @@ namespace CASP
                             Xmark.Visibility = Visibility.Hidden;
                             ConnectionLabel.Content = "Connected";
                         });
-                    } 
+                    }
                 }
             } catch
             {
