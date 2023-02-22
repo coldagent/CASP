@@ -42,8 +42,8 @@ namespace CASP
             // Serial Port Initialization
             sp = new(portName);
             sp.BaudRate = 9600;
-            sp.ReadTimeout = 5000;
-            sp.WriteTimeout = 5000;
+            sp.ReadTimeout = 1000;
+            sp.WriteTimeout = 1000;
             sp.ReadBufferSize = 1048576;
             sp.NewLine = "\n";
             sp.DtrEnable = true;
@@ -246,8 +246,10 @@ namespace CASP
                     {
                         sp.PortName = ports[i];
                         sp.Open();
+                        sp.DiscardInBuffer();
+                        sp.DiscardOutBuffer();
                         sp.WriteLine("%handshake");
-                        Thread.Sleep(5000);
+                        Thread.Sleep(1000);
                         if (connected)
                         {
                             Trace.WriteLine("PortName= " + ports[i]);
@@ -279,7 +281,7 @@ namespace CASP
             try
             {
                 string line = sp.ReadLine();
-                Debug.WriteLine(line);
+                Debug.WriteLine("Received: " + line);
                 if (running)
                 {
                     string currentPath = Environment.CurrentDirectory + "\\ReceivedData\\" + currentFile;
