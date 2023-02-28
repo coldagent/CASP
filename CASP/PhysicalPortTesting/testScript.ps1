@@ -5,9 +5,10 @@ $port = new-Object System.IO.Ports.SerialPort $COM,9600,None,8
 function read-com {
     $port.Open()
     do {
-        $port.WriteLine("%handshake");
-        Write-Host "Sending: %handshake"
-        Start-Sleep -Seconds 3
+        $command = Read-Host -Prompt "Enter Command"
+        $command = $command -replace "`n", ""
+        $port.WriteLine($command);
+        Write-Host "Sending: $command"
         $line = $port.ReadLine();
         $line = $line -replace "`r",""
         Write-Host "Line: `{$line`}"
