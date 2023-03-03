@@ -244,7 +244,11 @@ namespace CASP
                     Trace.WriteLine("Trying Port: " + ports[i]);
                     try
                     {
+#if DEBUG
+                        sp.PortName = "COM3";
+#else
                         sp.PortName = ports[i];
+#endif
                         sp.Open();
                         sp.DiscardInBuffer();
                         sp.DiscardOutBuffer();
@@ -252,7 +256,7 @@ namespace CASP
                         Thread.Sleep(1000);
                         if (connected)
                         {
-                            Trace.WriteLine("PortName= " + ports[i]);
+                            Trace.WriteLine("PortName= " + sp.PortName);
                             return;
                         }
                         sp.Close();
