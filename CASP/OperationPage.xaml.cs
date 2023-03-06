@@ -364,7 +364,7 @@ namespace CASP
                 Trace.WriteLine(Environment.CurrentDirectory);
                 ConnectionLost();
             }
-            if (sp.BytesToRead > 0)
+            if (sp.IsOpen && sp.BytesToRead > 0)
             {
                 sp_DataReceived(sender, e);
             }
