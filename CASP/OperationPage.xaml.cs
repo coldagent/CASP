@@ -392,7 +392,7 @@ namespace CASP
             }
             try
             {
-                sp.WriteLine("%raise");
+                sp.WriteLine("%adc");
             } catch
             {
                 Trace.WriteLine("Error in Raise Click");
