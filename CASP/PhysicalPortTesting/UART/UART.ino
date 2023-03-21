@@ -27,6 +27,7 @@
 #define ADC_SS_CS     PIN_PC3
 #define ADC_NREADY    PIN_PC2   //PC2 -> PD6
 #define ADC_RESET     PIN_PD5
+#define ADC_DELAY     30
 
 #define REG_ADCCON    0b00000010
 #define REG_ADCDATA   0b01000100
@@ -73,7 +74,7 @@ void ADC_init(void) {
   readwrite_spi_byte(0b00000000); //IOCON does not use P1 or P2
 
   readwrite_spi_byte(0b00000011); //next write to FILTER
-  readwrite_spi_byte(0b01000101); //set ADC update rate to 50.34 ms
+  readwrite_spi_byte(0b00001101); //set ADC update time to 9.52 ms
 
   /* Select Load Cell channel */
   readwrite_spi_byte(REG_ADCCON); //next write to ADCCON
@@ -183,19 +184,19 @@ void getAdcVals(unsigned int* vals) { //expects vals to be of size 2
   //Read LoadCell data
   readwrite_spi_byte(REG_ADCCON);
   readwrite_spi_byte(CHAN_LDCELL);
-  _delay_ms(0.5);
+  _delay_ms(10);
   readwrite_spi_byte(REG_ADCDATA);
   vals[0] = readwrite_spi_byte(REG_READ);
   //Read Probe1 data
   readwrite_spi_byte(REG_ADCCON);
   readwrite_spi_byte(CHAN_PROBE1);
-  _delay_ms(0.5);
+  _delay_ms(10);
   readwrite_spi_byte(REG_ADCDATA);
   int num1 = readwrite_spi_byte(REG_READ);
   //Read Probe2 data
   readwrite_spi_byte(REG_ADCCON);
   readwrite_spi_byte(CHAN_PROBE2);
-  _delay_ms(0.5);
+  _delay_ms(10);
   readwrite_spi_byte(REG_ADCDATA);
   int num2 = readwrite_spi_byte(REG_READ);
   vals[1] = abs(num1-num2);
@@ -207,6 +208,10 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
   // remaining room
   if ((maxDepth - probeLoc) < dist) {
     dist = maxDepth - probeLoc;
+  }
+
+  if (measuring && speed < ADC_DELAY) {
+    speed = ADC_DELAY;
   }
 
   // if down = true spin CW, else, spin CCW
@@ -234,9 +239,9 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
     digitalWrite(CLK, HIGH);
     _delay_ms(speed);
     digitalWrite(CLK, LOW);
-    _delay_ms(speed);
     //Collect data every mm of travel
     if (measuring && (i % (steps_cm / 10)) == 0) {
+      _delay_ms(speed - ADC_DELAY);
       unsigned int vals[2];
       getAdcVals(vals);
       char s1[5];
@@ -252,6 +257,8 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
       itoa(vals[1], s3, 10);
       strcat(output, s3);
       USART0_sendLine(output, strlen(output));
+    } else {
+      _delay_ms(speed);
     }
   }
 
