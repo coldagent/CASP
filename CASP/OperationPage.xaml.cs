@@ -315,6 +315,7 @@ namespace CASP
                     }
                     else
                     {
+                        //TODO: Convert from ADC value to voltage with a moving average of 5 units
                         File.AppendAllText(currentPath, line + "\n");
                     }
                 }

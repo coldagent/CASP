@@ -27,19 +27,15 @@
 #define ADC_SS_CS     PIN_PC3
 #define ADC_NREADY    PIN_PC2   //PC2 -> PD6
 #define ADC_RESET     PIN_PD5
-#define ADC_DELAY     30
+#define ADC_DELAY     20
 
-#define REG_ADCCON    0b00000010
-#define REG_ADCDATA   0b01000100
+#define WRITE_ADCCON_REG    0b00000010
+#define READ_ADCDATA_REG   0b01000100
 #define REG_READ      0b00000000
-#define CHAN_LDCELL   0b00010110  //AIN2-AINCOM, unipolar encoding, +/- 2.56 V input range
-#define CHAN_PROBE1   0b01010110  //AIN6-AINCOM, unipolar encoding, +/- 2.56 V input range
-#define CHAN_PROBE2   0b01100110  //AIN7-AINCOM, unipolar encoding, +/- 2.56 V input range
+#define CHAN_LDCELL   0b00011111  //AIN2-AINCOM, bipolar encoding, +/- 2.56 V input range
+#define CHAN_PROBE    0b01101111  //AIN7-AINCOM, bipolar encoding, +/- 2.56 V input range
 
-
-bool starting_position = false;
 int probeLoc = 0;
-char SPI_buf = 0xFF;
 
 /* Setup Functions */
 
@@ -77,12 +73,11 @@ void ADC_init(void) {
   readwrite_spi_byte(0b00001101); //set ADC update time to 9.52 ms
 
   /* Select Load Cell channel */
-  readwrite_spi_byte(REG_ADCCON); //next write to ADCCON
-  readwrite_spi_byte(CHAN_LDCELL); 
+  readwrite_spi_byte(WRITE_ADCCON_REG); //next write to ADCCON
   readwrite_spi_byte(CHAN_LDCELL); //select AIN2, bipolar coding, +/- 2.56 V input range
 
   readwrite_spi_byte(0b00000001); //next write to MODE
-  readwrite_spi_byte(0b01010011); //begin continuous conversion
+  readwrite_spi_byte(0b00010011); //begin continuous conversion
 }
 
 void USART0_init(void){
@@ -132,7 +127,7 @@ void SPI1_sendChar(char c){
 
 unsigned char readwrite_spi_byte(unsigned char out_byte) {
   unsigned char in_byte = 0x00;
-  char test[8];
+  //char test[8];
   for (int i = 0; i < 8; i++) {
     digitalWrite(ADC_SCLK, LOW);
     digitalWrite(ADC_MOSI_DIN, ((out_byte & 0x80) ? 1:0));
@@ -141,10 +136,10 @@ unsigned char readwrite_spi_byte(unsigned char out_byte) {
     in_byte <<= 1;
     out_byte <<= 1;
     in_byte |= digitalRead(ADC_MISO_DOUT);
-    test[i] = digitalRead(ADC_MISO_DOUT) + '0';
+    //test[i] = digitalRead(ADC_MISO_DOUT) + '0';
     _delay_ms(1);
   }
-  USART0_sendLine(test, 8);
+  //USART0_sendLine(test, 8);
   return in_byte;
 }
  
@@ -180,26 +175,26 @@ size_t USART0_receiveLine(char* buf, size_t buf_size){
 }
 
 /* Peripherals Functions */
-void getAdcVals(unsigned int* vals) { //expects vals to be of size 2
+void getAdcVals(unsigned long* vals) { //expects vals to be of size 2
   //Read LoadCell data
-  readwrite_spi_byte(REG_ADCCON);
+  readwrite_spi_byte(WRITE_ADCCON_REG);
   readwrite_spi_byte(CHAN_LDCELL);
   _delay_ms(10);
-  readwrite_spi_byte(REG_ADCDATA);
-  vals[0] = readwrite_spi_byte(REG_READ);
-  //Read Probe1 data
-  readwrite_spi_byte(REG_ADCCON);
-  readwrite_spi_byte(CHAN_PROBE1);
+  readwrite_spi_byte(READ_ADCDATA_REG);
+  unsigned long temp;
+  temp = readwrite_spi_byte(READ_ADCDATA_REG);
+  vals[0] += temp << 16;
+  vals[0] += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
+  vals[0] += readwrite_spi_byte(REG_READ);
+  //Read Probe data
+  readwrite_spi_byte(WRITE_ADCCON_REG);
+  readwrite_spi_byte(CHAN_LDCELL);
   _delay_ms(10);
-  readwrite_spi_byte(REG_ADCDATA);
-  int num1 = readwrite_spi_byte(REG_READ);
-  //Read Probe2 data
-  readwrite_spi_byte(REG_ADCCON);
-  readwrite_spi_byte(CHAN_PROBE2);
-  _delay_ms(10);
-  readwrite_spi_byte(REG_ADCDATA);
-  int num2 = readwrite_spi_byte(REG_READ);
-  vals[1] = abs(num1-num2);
+  readwrite_spi_byte(READ_ADCDATA_REG);
+  temp = readwrite_spi_byte(READ_ADCDATA_REG);
+  vals[1] += temp << 16;
+  vals[1] += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
+  vals[1] += readwrite_spi_byte(REG_READ);
 }
 
 void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuring) {
@@ -242,19 +237,19 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
     //Collect data every mm of travel
     if (measuring && (i % (steps_cm / 10)) == 0) {
       _delay_ms(speed - ADC_DELAY);
-      unsigned int vals[2];
+      unsigned long vals[2] = {0, 0};
       getAdcVals(vals);
-      char s1[5];
-      char s2[5];
-      char s3[5];
-      char output[15];
+      char s1[10];
+      char s2[10];
+      char s3[10];
+      char output[30];
       itoa(10*i / steps_cm, s1, 10); //converts to mm first
       strcat(output, s1);
       strcat(output, ",");
-      itoa(vals[0], s2, 10);
+      ltoa(vals[0], s2, 10);
       strcat(output, s2);
       strcat(output, ",");
-      itoa(vals[1], s3, 10);
+      ltoa(vals[1], s3, 10);
       strcat(output, s3);
       USART0_sendLine(output, strlen(output));
     } else {
@@ -314,12 +309,17 @@ void startMeasurement(const char* buf, size_t bufSize) {
 }
 
 void testADC() {
-  while(digitalRead(ADC_NREADY)); //wait for ADC to be ready
-  readwrite_spi_byte(REG_ADCDATA); //next is read from ADC Data register
-  unsigned char c = readwrite_spi_byte(REG_READ); //read from selected register
-  int n = c;
-  char s[5];
-  itoa(n, s, 10);
+  //Read Probe1 data
+  readwrite_spi_byte(WRITE_ADCCON_REG);
+  readwrite_spi_byte(CHAN_LDCELL);
+  while(digitalRead(ADC_NREADY));
+  readwrite_spi_byte(READ_ADCDATA_REG);
+  unsigned long num1 = readwrite_spi_byte(READ_ADCDATA_REG);
+  num1 <<= 16;
+  num1 += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
+  num1 += readwrite_spi_byte(REG_READ);
+  char s[10];
+  ltoa(num1, s, 10);
   USART0_sendLine(s, strlen(s));
 }
 
