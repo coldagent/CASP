@@ -197,7 +197,7 @@ void getAdcVals(unsigned long* vals) { //expects vals to be of size 2
   vals[1] += readwrite_spi_byte(REG_READ);
 }
 
-void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuring) {
+void driveProbe(int dist, bool down, double speed, bool measuring) {
   // check that probe is not to go deeper than the pot depth
   // if dist is would go greater than pot depth, set dist to
   // remaining room
@@ -205,7 +205,7 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
     dist = maxDepth - probeLoc;
   }
 
-  if (measuring && speed < ADC_DELAY) {
+  if (measuring && (speed < ADC_DELAY)) {
     speed = ADC_DELAY;
   }
 
@@ -224,25 +224,24 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
   digitalWrite(M3, HIGH);
   _delay_ms(1);
 
-
   //calculate number of steps
   unsigned int numSteps = dist * steps_cm;
   for (unsigned int i = 0; i < numSteps; i++) {
-    if (digitalRead(LIMIT_SWITCH) == HIGH) {
+    /*if (digitalRead(LIMIT_SWITCH) == HIGH) {
       break;
-    }
+    }*/
     digitalWrite(CLK, HIGH);
     _delay_ms(speed);
     digitalWrite(CLK, LOW);
     //Collect data every mm of travel
-    if (measuring && (i % (steps_cm / 10)) == 0) {
+    if (measuring && ((i % (steps_cm / 10)) == 0)) {
       _delay_ms(speed - ADC_DELAY);
       unsigned long vals[2] = {0, 0};
       getAdcVals(vals);
-      char s1[10];
-      char s2[10];
-      char s3[10];
-      char output[30];
+      char s1[15] = {0};
+      char s2[15] = {0};
+      char s3[15] = {0};
+      char output[45] = {0};
       itoa(10*i / steps_cm, s1, 10); //converts to mm first
       strcat(output, s1);
       strcat(output, ",");
@@ -270,9 +269,6 @@ void driveProbe(double probeLoc, int dist, bool down, double speed, bool measuri
   } else {
     probeLoc += dist;
   }
-  if (measuring) {
-    USART0_sendLine("done", strlen("done"));
-  }
 }
 
 void resetProbe() {
@@ -299,13 +295,12 @@ void resetProbe() {
 }
 
 void startMeasurement(const char* buf, size_t bufSize) {
-  int distLen = bufSize - strlen("%start ");
-  char dist[distLen] = {};
-  for (int i = 0; i < distLen; i++) {
-    dist[i] = buf[i+distLen];
-  }
+  int distLen = bufSize - 7;    //7 is the length of "%start "
+  char dist[distLen];
+  strncpy(dist, buf+7, distLen);
   resetProbe();
-  driveProbe(probeLoc, atoi(dist), true, 1, true);
+  USART0_sendLine("done", strlen("done"));
+  driveProbe(atoi(dist), true, 1, true);
 }
 
 void testADC() {
@@ -333,10 +328,10 @@ int main(void){
     if (strncmp(buf, "%handshake", bufSize) == 0) {
       USART0_sendLine("connected", strlen("connected"));     //Pass the string to the USART_putstring function and sends it over the serial
     } else if (strncmp(buf, "%raise", bufSize) == 0) {
-      driveProbe(probeLoc, 1, false, 1, false);
+      driveProbe(1, false, 1, false);
       //USART0_sendLine("raised", strlen("raised"));
     } else if (strncmp(buf, "%lower", bufSize) == 0) {
-      driveProbe(probeLoc, 10, true, 2, false);
+      driveProbe(1, true, 1, false);
       //USART0_sendLine("lowered", strlen("lowered"));
     } else if (strncmp(buf, "%start", strlen("%start")) == 0) {
       startMeasurement(buf, bufSize);
@@ -344,6 +339,13 @@ int main(void){
       resetProbe();
     } else if (strncmp(buf, "%adc", bufSize) == 0) {
       testADC();
+    } else if (strncmp(buf, "%switch", bufSize) == 0) {
+      bool pressed = digitalRead(LIMIT_SWITCH);
+      if (pressed) {
+        USART0_sendLine("Pressed", strlen("Pressed"));
+      } else {
+        USART0_sendLine("Not Pressed", strlen("Not Pressed"));
+      } 
     } else {
       USART0_sendLine(buf, bufSize);
     }

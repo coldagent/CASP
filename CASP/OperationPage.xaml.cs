@@ -116,19 +116,20 @@ namespace CASP
         {
             double depth_double = double.Parse(DepthBox.Text);
             int depth_int = 0;
+            //convert to cm
             switch (DepthUnit.Text)
             {
                 case "in.":
-                    depth_int = (int)(depth_double * 25.4);
+                    depth_int = (int)(depth_double * 2.54);
                     break;
                 case "ft":
-                    depth_int = (int)(depth_double * 304.8);
+                    depth_int = (int)(depth_double * 30.48);
                     break;
                 case "cm":
-                    depth_int = (int)(depth_double * 10);
+                    depth_int = (int)(depth_double * 1);
                     break;
                 case "m":
-                    depth_int = (int)(depth_double * 1000);
+                    depth_int = (int)(depth_double * 100);
                     break;
             }   
             return depth_int;
@@ -170,6 +171,7 @@ namespace CASP
                 try
                 {
                     sp.WriteLine("%start " + depth.ToString());
+                    //Trace.WriteLine("Sending {%start " + depth.ToString() + "}");
                 }
                 catch
                 {
@@ -316,6 +318,11 @@ namespace CASP
                     else
                     {
                         //TODO: Convert from ADC value to voltage with a moving average of 5 units
+                        // (adc/14777216)*2.56 is the voltage received at the adc
+                        /*string[] items = line.Split(',');
+                        items[1] = ((long.Parse(items[1]) / 14777216) * 2.56).ToString();
+                        items[2] = ((long.Parse(items[2]) / 14777216) * 2.56).ToString();
+                        line = items[0] + "," + items[1] + "," + items[2];*/
                         File.AppendAllText(currentPath, line + "\n");
                     }
                 }
@@ -448,9 +455,15 @@ namespace CASP
                 MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);
             });
             //Run connection function again
-            sp.DiscardOutBuffer();
-            sp.DiscardInBuffer();
-            sp.Close();
+            try
+            {
+                sp.DiscardOutBuffer();
+                sp.DiscardInBuffer();
+                sp.Close();
+            } catch
+            {
+                Trace.WriteLine("Error in ConnectionLost");
+            }
             Thread connection_thread = new(CheckConnection);
             connection_thread.IsBackground = true;
             connection_thread.Start();
