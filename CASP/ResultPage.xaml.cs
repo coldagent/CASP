@@ -44,10 +44,10 @@ namespace CASP
             fileSaver.Title = "Save and Image File";
             // Initialize Plot
             ResultPlot.Plot.Title("Force and Moisture vs. Depth");
-            ResultPlot.Plot.XLabel("Depth (m)");
-            ResultPlot.Plot.YLabel("Force (psi)");
+            ResultPlot.Plot.XLabel("Depth (mm)");
+            ResultPlot.Plot.YLabel("Average Force (psi)");
             ResultPlot.Plot.YAxis.Color(ResultPlot.Plot.Palette.GetColor(0));
-            ResultPlot.Plot.YAxis2.Label("Moisture (%)");
+            ResultPlot.Plot.YAxis2.Label("Average Resistance (Ohm)");
             ResultPlot.Plot.YAxis2.Color(ResultPlot.Plot.Palette.GetColor(1));
             ResultPlot.Plot.YAxis2.Ticks(true);
             // Initialize Event
@@ -86,9 +86,13 @@ namespace CASP
                 vals = line!.Split(',');
                 try
                 {
+                    if (int.Parse(vals[0]) < 5)
+                    {
+                        continue;
+                    }
                     values[0].Add(double.Parse(vals[0]));
-                    values[1].Add(double.Parse(vals[1]));
-                    values[2].Add(double.Parse(vals[2]));
+                    values[1].Add(double.Parse(vals[2]));
+                    values[2].Add(double.Parse(vals[4]));
                 }
                 catch
                 {

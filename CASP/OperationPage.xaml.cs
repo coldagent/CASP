@@ -8,6 +8,8 @@ using System.Diagnostics.Eventing.Reader;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 using System.Drawing;
 using System.IO;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace CASP
 {
@@ -23,6 +25,9 @@ namespace CASP
         private SerialPort sp;
         private string portName = "COM2";
         private string currentFile = "";
+        private Queue<double> ldcellQueue = new Queue<double>();
+        private Queue<double> probeQueue = new Queue<double>();
+        private double ldcellZero = -1;
 
         public OperationPage()
         {
@@ -247,7 +252,7 @@ namespace CASP
                     try
                     {
 #if DEBUG
-                        sp.PortName = "COM3";
+                        sp.PortName = "COM2";
 #else
                         sp.PortName = ports[i];
 #endif
@@ -282,6 +287,48 @@ namespace CASP
             }
         }
 
+        double movingAverage(double x, bool isLdCell) {
+            double average = 0;
+            if (isLdCell)
+            {
+                if (ldcellQueue.Count < 4)
+                {
+                    ldcellQueue.Enqueue(x);
+                } else if (ldcellQueue.Count == 4)
+                {
+                    ldcellQueue.Enqueue(x);
+                    double[] q = ldcellQueue.ToArray();
+                    average = (q[0] + q[1] + q[2] + q[3] + q[4]) / 5;
+                } else
+                {
+                    ldcellQueue.Dequeue();
+                    ldcellQueue.Enqueue(x);
+                    double[] q = ldcellQueue.ToArray();
+                    average = (q[0] + q[1] + q[2] + q[3] + q[4]) / 5;
+                }
+            } else
+            {
+                if (probeQueue.Count < 4)
+                {
+                    probeQueue.Enqueue(x);
+                }
+                else if (probeQueue.Count == 4)
+                {
+                    probeQueue.Enqueue(x);
+                    double[] q = probeQueue.ToArray();
+                    average = (q[0] + q[1] + q[2] + q[3] + q[4]) / 5;
+                }
+                else
+                {
+                    probeQueue.Dequeue();
+                    probeQueue.Enqueue(x);
+                    double[] q = probeQueue.ToArray();
+                    average = (q[0] + q[1] + q[2] + q[3] + q[4]) / 5;
+                }
+            }
+            return average;
+        }
+
         void sp_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
@@ -300,12 +347,15 @@ namespace CASP
                         using (StreamWriter sw = File.CreateText(currentPath))
                         {
                             sw.WriteLine("CASP");
-                            sw.WriteLine("Depth,Psi,Conductivity");
+                            sw.WriteLine("Depth (mm),Penetration Force (psi),PF Moving Average (psi),Conductivity (Ohm), Cond Moving Average (Ohm)");
                         }
                     }
                     if (line.Equals("done"))
                     {
                         running = false;
+                        ldcellQueue.Clear();
+                        probeQueue.Clear();
+                        ldcellZero = -1;
                         this.Dispatcher.Invoke(() =>
                         {
                             string messageBoxText = "The probe is done taking measurements.";
@@ -319,11 +369,23 @@ namespace CASP
                     {
                         //TODO: Convert from ADC value to voltage with a moving average of 5 units
                         // (adc/14777216)*2.56 is the voltage received at the adc
-                        /*string[] items = line.Split(',');
-                        items[1] = ((long.Parse(items[1]) / 14777216) * 2.56).ToString();
-                        items[2] = ((long.Parse(items[2]) / 14777216) * 2.56).ToString();
-                        line = items[0] + "," + items[1] + "," + items[2];*/
-                        File.AppendAllText(currentPath, line + "\n");
+                        string[] items = line.Split(',');
+                        //Get numbers from strings and convert to their values
+                        double i1 = ldcellZero == -1 ? long.Parse(items[1]) : long.Parse(items[1]) - ldcellZero;
+                        if (ldcellZero == -1)
+                        {
+                            ldcellZero = i1;
+                        } else
+                        {
+                            i1 = (128 * i1) / (12 * Math.PI); //TODO: Update 12 constant
+                            double i2 = (long.Parse(items[2]) / 14777216.0) * 2.56; //TODO: Convert to resistance
+                            double i1Average = movingAverage(i1, true);
+                            double i2Average = movingAverage(i2, false);
+                            items[1] = i1.ToString();
+                            items[2] = i2.ToString();
+                            line = items[0] + "," + items[1] + "," + i1Average.ToString() + "," + items[2] + "," + i2Average.ToString();
+                            File.AppendAllText(currentPath, line + "\n");
+                        }
                     }
                 }
                 else if (resetting && line.Equals("done"))
@@ -400,7 +462,7 @@ namespace CASP
             }
             try
             {
-                sp.WriteLine("%adc");
+                sp.WriteLine("%raise");
             } catch
             {
                 Trace.WriteLine("Error in Raise Click");
