@@ -367,6 +367,7 @@ namespace CASP
                     }
                     else
                     {
+                        sp.WriteLine("c");   //lets the MCU know to continue
                         //TODO: Convert from ADC value to voltage with a moving average of 5 units
                         // (adc/14777216)*2.56 is the voltage received at the adc
                         string[] items = line.Split(',');

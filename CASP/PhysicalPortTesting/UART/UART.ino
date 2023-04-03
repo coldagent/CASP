@@ -226,10 +226,9 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
 
   //calculate number of steps
   unsigned int numSteps = dist * steps_cm;
-  for (unsigned int i = 0; i < numSteps; i++) {
-    /*if (digitalRead(LIMIT_SWITCH) == HIGH) {
-      break;
-    }*/
+  char buf[8] = {};
+  size_t bufSize = 8;
+  for (unsigned int i = 0; i < numSteps; i++) {   //This could be sped up but I'm about to graduate
     digitalWrite(CLK, HIGH);
     _delay_ms(speed);
     digitalWrite(CLK, LOW);
@@ -253,6 +252,10 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
       USART0_sendLine(output, strlen(output));
     } else {
       _delay_ms(speed);
+    }
+    bufSize = USART0_receiveLine(buf, 8);
+    if ((digitalRead(LIMIT_SWITCH) == HIGH) || (strncmp(buf, "%stop", bufSize) == 0)) {
+      break;
     }
   }
 
