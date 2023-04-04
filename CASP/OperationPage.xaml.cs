@@ -4,11 +4,7 @@ using System.Windows.Controls;
 using System.IO.Ports;
 using System.Diagnostics;
 using System.Threading;
-using System.Diagnostics.Eventing.Reader;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
-using System.Drawing;
 using System.IO;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace CASP
@@ -47,8 +43,8 @@ namespace CASP
             // Serial Port Initialization
             sp = new(portName);
             sp.BaudRate = 9600;
-            sp.ReadTimeout = 1000;
-            sp.WriteTimeout = 1000;
+            sp.ReadTimeout = 5000;
+            sp.WriteTimeout = 5000;
             sp.ReadBufferSize = 1048576;
             sp.NewLine = "\n";
             sp.DtrEnable = true;
