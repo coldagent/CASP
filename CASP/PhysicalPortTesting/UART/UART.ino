@@ -17,7 +17,7 @@
 #define Reset         PIN_PA2
 #define CLK           PIN_PA3
 #define CWCCW         PIN_PA7
-#define maxDepth      25        //cm
+#define maxDepth      25.4        //cm
 #define steps_cm      251       //steps per cm
 #define LIMIT_SWITCH  PIN_PD2
 
@@ -35,7 +35,7 @@
 #define CHAN_LDCELL   0b00011111  //AIN2-AINCOM, bipolar encoding, +/- 2.56 V input range
 #define CHAN_PROBE    0b01101111  //AIN7-AINCOM, bipolar encoding, +/- 2.56 V input range
 
-int probeLoc = 0;
+double probeLoc = 0;
 
 /* Setup Functions */
 
@@ -188,7 +188,7 @@ void getAdcVals(unsigned long* vals) { //expects vals to be of size 2
   vals[0] += readwrite_spi_byte(REG_READ);
   //Read Probe data
   readwrite_spi_byte(WRITE_ADCCON_REG);
-  readwrite_spi_byte(CHAN_LDCELL);
+  readwrite_spi_byte(CHAN_PROBE);
   _delay_ms(10);
   readwrite_spi_byte(READ_ADCDATA_REG);
   temp = readwrite_spi_byte(READ_ADCDATA_REG);
@@ -237,12 +237,10 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
       _delay_ms(speed - ADC_DELAY);
       unsigned long vals[2] = {0, 0};
       getAdcVals(vals);
-      char s1[15] = {0};
       char s2[15] = {0};
       char s3[15] = {0};
       char output[45] = {0};
-      itoa(10*i / steps_cm, s1, 10); //converts to mm first
-      strcat(output, s1);
+      itoa(10*i / steps_cm, output, 10); //converts to mm first
       strcat(output, ",");
       ltoa(vals[0], s2, 10);
       strcat(output, s2);
@@ -250,11 +248,16 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
       ltoa(vals[1], s3, 10);
       strcat(output, s3);
       USART0_sendLine(output, strlen(output));
+      bufSize = USART0_receiveLine(buf, 8);
     } else {
       _delay_ms(speed);
     }
-    bufSize = USART0_receiveLine(buf, 8);
-    if ((digitalRead(LIMIT_SWITCH) == HIGH) || (strncmp(buf, "%stop", bufSize) == 0)) {
+    if (!down){
+      probeLoc -= (1/steps_cm);
+    } else {
+      probeLoc += (1/steps_cm);
+    }
+    if ((digitalRead(LIMIT_SWITCH) == HIGH && !down) || (strncmp(buf, "%stop", bufSize) == 0)) {
       break;
     }
   }
@@ -267,11 +270,6 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   _delay_ms(1);
   digitalWrite(M3, LOW);
   //update probe location
-  if (!down){
-    probeLoc -= dist;
-  } else {
-    probeLoc += dist;
-  }
 }
 
 void resetProbe() {
@@ -299,11 +297,10 @@ void resetProbe() {
 
 void startMeasurement(const char* buf, size_t bufSize) {
   int distLen = bufSize - 7;    //7 is the length of "%start "
-  char dist[distLen];
+  char dist[distLen] = {};
   strncpy(dist, buf+7, distLen);
-  resetProbe();
-  USART0_sendLine("done", strlen("done"));
   driveProbe(atoi(dist), true, 1, true);
+  USART0_sendLine("done", strlen("done"));
 }
 
 void testADC() {
@@ -325,6 +322,7 @@ void testADC() {
 
 int main(void){
   setup();                 //Initializes everything
+  resetProbe();
   while(1){
     char buf[50] = {};
     size_t bufSize = USART0_receiveLine(buf, 50);

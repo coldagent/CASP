@@ -252,7 +252,7 @@ namespace CASP
                     try
                     {
 #if DEBUG
-                        sp.PortName = "COM2";
+                        sp.PortName = "COM3";
 #else
                         sp.PortName = ports[i];
 #endif
@@ -337,7 +337,8 @@ namespace CASP
                 Debug.WriteLine("Received: " + line);
                 if (running)
                 {
-                    sp.WriteLine("c");   //lets the MCU know to continue so it does not wait for GUI jobs
+                    if (!line.Equals("done"))
+                        sp.WriteLine("c");   //lets the MCU know to continue so it does not wait for GUI jobs
                     string currentPath = Environment.CurrentDirectory + "\\ReceivedData\\" + currentFile;
                     if (!Directory.Exists(Environment.CurrentDirectory + "\\ReceivedData"))
                     {
@@ -368,7 +369,6 @@ namespace CASP
                     }
                     else
                     {
-                        //TODO: Convert from ADC value to voltage with a moving average of 5 units
                         // (adc/14777216)*2.56 is the voltage received at the adc
                         string[] items = line.Split(',');
                         //Get numbers from strings and convert to their values
@@ -378,7 +378,7 @@ namespace CASP
                             ldcellZero = i1;
                         } else
                         {
-                            i1 = (128 * i1) / (12 * Math.PI); //TODO: Update 12 constant
+                            i1 = (128 * (i1-ldcellZero)) / (1344.5 * Math.PI);
                             double i2 = (long.Parse(items[2]) / 14777216.0) * 2.56; //TODO: Convert to resistance
                             double i1Average = movingAverage(i1, true);
                             double i2Average = movingAverage(i2, false);
