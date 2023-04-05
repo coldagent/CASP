@@ -131,13 +131,13 @@ unsigned char readwrite_spi_byte(unsigned char out_byte) {
   for (int i = 0; i < 8; i++) {
     digitalWrite(ADC_SCLK, LOW);
     digitalWrite(ADC_MOSI_DIN, ((out_byte & 0x80) ? 1:0));
-    _delay_ms(1);
+    _delay_ms(0.25);
     digitalWrite(ADC_SCLK, HIGH);
     in_byte <<= 1;
     out_byte <<= 1;
     in_byte |= digitalRead(ADC_MISO_DOUT);
     //test[i] = digitalRead(ADC_MISO_DOUT) + '0';
-    _delay_ms(1);
+    _delay_ms(0.25);
   }
   //USART0_sendLine(test, 8);
   return in_byte;
@@ -175,26 +175,25 @@ size_t USART0_receiveLine(char* buf, size_t buf_size){
 }
 
 /* Peripherals Functions */
-void getAdcVals(unsigned long* vals) { //expects vals to be of size 2
-  //Read LoadCell data
-  readwrite_spi_byte(WRITE_ADCCON_REG);
-  readwrite_spi_byte(CHAN_LDCELL);
-  _delay_ms(10);
+
+unsigned long getLoadCellVal(void) {  //assumes channel is set to ldcell
   readwrite_spi_byte(READ_ADCDATA_REG);
-  unsigned long temp;
-  temp = readwrite_spi_byte(READ_ADCDATA_REG);
-  vals[0] += temp << 16;
-  vals[0] += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
-  vals[0] += readwrite_spi_byte(REG_READ);
-  //Read Probe data
-  readwrite_spi_byte(WRITE_ADCCON_REG);
+  unsigned long val = readwrite_spi_byte(READ_ADCDATA_REG);
+  val = val << 16;
+  val += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
+  val += readwrite_spi_byte(WRITE_ADCCON_REG);
   readwrite_spi_byte(CHAN_PROBE);
-  _delay_ms(10);
+  return val;
+}
+
+unsigned long getProbeVal(void) {   //assumes channel is set to probes
   readwrite_spi_byte(READ_ADCDATA_REG);
-  temp = readwrite_spi_byte(READ_ADCDATA_REG);
-  vals[1] += temp << 16;
-  vals[1] += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
-  vals[1] += readwrite_spi_byte(REG_READ);
+  unsigned long val = readwrite_spi_byte(READ_ADCDATA_REG);
+  val = val << 16;
+  val += readwrite_spi_byte(READ_ADCDATA_REG) << 8;
+  val += readwrite_spi_byte(WRITE_ADCCON_REG);
+  readwrite_spi_byte(CHAN_LDCELL);
+  return val;
 }
 
 void driveProbe(int dist, bool down, double speed, bool measuring) {
@@ -228,40 +227,49 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   unsigned int numSteps = dist * steps_cm;
   char buf[8] = {};
   size_t bufSize = 8;
+  unsigned long ldcellVal = 0;
   for (unsigned int i = 0; i < numSteps; i++) {   //This could be sped up but I'm about to graduate
     digitalWrite(CLK, HIGH);
     _delay_ms(speed);
     digitalWrite(CLK, LOW);
     //Collect data every mm of travel
-    if (measuring && ((i % (steps_cm / 10)) == 0)) {
+    if (measuring && ((i % (steps_cm / 10) - (steps_cm / 5)) == 0)) {   // measure ldcell val
       _delay_ms(speed - ADC_DELAY);
-      unsigned long vals[2] = {0, 0};
-      getAdcVals(vals);
-      char s2[15] = {0};
-      char s3[15] = {0};
+      ldcellVal = getLoadCellVal();
+    } else if (measuring && ((i % (steps_cm / 10)) == 0)) {   // measure probe val
+      _delay_ms(speed - ADC_DELAY);
+      unsigned long probeVal = getProbeVal();
+      char ldcellString[15] = {0};
+      char probeString[15] = {0};
       char output[45] = {0};
       itoa(10*i / steps_cm, output, 10); //converts to mm first
       strcat(output, ",");
-      ltoa(vals[0], s2, 10);
-      strcat(output, s2);
+      ltoa(ldcellVal, ldcellString, 10);
+      strcat(output, ldcellString);
       strcat(output, ",");
-      ltoa(vals[1], s3, 10);
-      strcat(output, s3);
+      ltoa(probeVal, probeString, 10);
+      strcat(output, probeString);
       USART0_sendLine(output, strlen(output));
       bufSize = USART0_receiveLine(buf, 8);
     } else {
       _delay_ms(speed);
     }
+    //update probe location
     if (!down){
       probeLoc -= (1/steps_cm);
     } else {
       probeLoc += (1/steps_cm);
     }
+    //check if we should stop
     if ((digitalRead(LIMIT_SWITCH) == HIGH && !down) || (strncmp(buf, "%stop", bufSize) == 0)) {
       break;
     }
   }
 
+  //make sure we start on the ldcell channel
+  readwrite_spi_byte(WRITE_ADCCON_REG);
+  readwrite_spi_byte(CHAN_LDCELL);
+  
   //turn off stepper motor
   _delay_ms(1);
   digitalWrite(Enable, LOW);
@@ -269,7 +277,6 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   digitalWrite(Reset, LOW);
   _delay_ms(1);
   digitalWrite(M3, LOW);
-  //update probe location
 }
 
 void resetProbe() {
@@ -322,7 +329,7 @@ void testADC() {
 
 int main(void){
   setup();                 //Initializes everything
-  resetProbe();
+  resetProbe();            //Start probe at 0 position
   while(1){
     char buf[50] = {};
     size_t bufSize = USART0_receiveLine(buf, 50);
