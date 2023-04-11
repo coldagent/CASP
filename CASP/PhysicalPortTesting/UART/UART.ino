@@ -32,8 +32,8 @@
 #define WRITE_ADCCON_REG    0b00000010
 #define READ_ADCDATA_REG   0b01000100
 #define REG_READ      0b00000000
-#define CHAN_LDCELL   0b00011111  //AIN2-AINCOM, bipolar encoding, +/- 2.56 V input range
-#define CHAN_PROBE    0b01101111  //AIN7-AINCOM, bipolar encoding, +/- 2.56 V input range
+#define CHAN_LDCELL   0b00011111  //AIN2-AINCOM, unipolar encoding, +/- 2.56 V input range
+#define CHAN_PROBE    0b01101111  //AIN7-AINCOM, unipolar encoding, +/- 2.56 V input range
 
 double probeLoc = 0;
 
@@ -228,15 +228,17 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   char buf[8] = {};
   size_t bufSize = 8;
   unsigned long ldcellVal = 0;
+  bool ldcellBool = true;
   for (unsigned int i = 0; i < numSteps; i++) {   //This could be sped up but I'm about to graduate
     digitalWrite(CLK, HIGH);
     _delay_ms(speed);
     digitalWrite(CLK, LOW);
     //Collect data every mm of travel
-    if (measuring && ((i % (steps_cm / 10) - (steps_cm / 5)) == 0)) {   // measure ldcell val
+    if (ldcellBool && measuring && ((i % (steps_cm / 20)) == 0)) {   // measure ldcell val
       _delay_ms(speed - ADC_DELAY);
       ldcellVal = getLoadCellVal();
-    } else if (measuring && ((i % (steps_cm / 10)) == 0)) {   // measure probe val
+      ldcellBool = false;
+    } else if (!ldcellBool && measuring && ((i % (steps_cm / 20)) == 0)) {   // measure probe val
       _delay_ms(speed - ADC_DELAY);
       unsigned long probeVal = getProbeVal();
       char ldcellString[15] = {0};
@@ -251,6 +253,7 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
       strcat(output, probeString);
       USART0_sendLine(output, strlen(output));
       bufSize = USART0_receiveLine(buf, 8);
+      ldcellBool = true;
     } else {
       _delay_ms(speed);
     }
@@ -345,6 +348,7 @@ int main(void){
       startMeasurement(buf, bufSize);
     } else if (strncmp(buf, "%reset", bufSize) == 0) {
       resetProbe();
+      USART0_sendLine("done", strlen("done"));
     } else if (strncmp(buf, "%adc", bufSize) == 0) {
       testADC();
     } else if (strncmp(buf, "%switch", bufSize) == 0) {

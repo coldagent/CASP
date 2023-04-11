@@ -43,8 +43,8 @@ namespace CASP
             // Serial Port Initialization
             sp = new(portName);
             sp.BaudRate = 9600;
-            sp.ReadTimeout = 5000;
-            sp.WriteTimeout = 5000;
+            sp.ReadTimeout = 10000;
+            sp.WriteTimeout = 10000;
             sp.ReadBufferSize = 1048576;
             sp.NewLine = "\n";
             sp.DtrEnable = true;
@@ -62,7 +62,7 @@ namespace CASP
             while (true)
             {
                 if (resetting || running) { timeout_watcher++; }
-                if (timeout_watcher > 300)
+                if (timeout_watcher > 6000)
                 {
                     timeout_watcher = 0;
                     this.Dispatcher.Invoke(() => { OpProgressBar.Value = 0; });
@@ -75,7 +75,7 @@ namespace CASP
                 if ((!running && !resetting && progress == 0) || ((resetting || running) && progress >= 95)) { }
                 else if (!running && !resetting && progress >= 1)
                 {
-                    this.Dispatcher.Invoke(() => { OpProgressBar.Value = 100; });
+                    this.Dispatcher.Invoke(() => { OpProgressBar.Value = 1200; });
                     Thread.Sleep(2000);
                     this.Dispatcher.Invoke(() => { OpProgressBar.Value = 0; });
                     timeout_watcher = 0;
@@ -368,14 +368,18 @@ namespace CASP
                         // (adc/14777216)*2.56 is the voltage received at the adc
                         string[] items = line.Split(',');
                         //Get numbers from strings and convert to their values
-                        double i1 = ldcellZero == -1 ? long.Parse(items[1]) : long.Parse(items[1]) - ldcellZero;
+                        double i1 = long.Parse(items[1]);
+                        if (i1 > 5120000)
+                        {
+                            i1 -= 62587;
+                        }
                         if (ldcellZero == -1)
                         {
                             ldcellZero = i1;
                         } else
                         {
-                            i1 = (128 * (i1-ldcellZero)) / (1344.5 * Math.PI);
-                            double i2 = (long.Parse(items[2]) / 14777216.0) * 2.56; //TODO: Convert to resistance
+                            i1 = (128 * Math.Abs(i1-ldcellZero)) / (1344.5 * Math.PI);
+                            double i2 = (((long.Parse(items[2]) / 14777216.0) * 2.56) - 1)*100; //TODO: Convert to resistance
                             double i1Average = movingAverage(i1, true);
                             double i2Average = movingAverage(i2, false);
                             items[1] = i1.ToString();
