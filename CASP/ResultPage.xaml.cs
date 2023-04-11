@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -34,7 +35,11 @@ namespace CASP
             directory += "TestData";
             fileSelector.InitialDirectory = directory;
 #else
-            string directory = Directory.GetCurrentDirectory();
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\ReceivedData"))
+                {
+                    Directory.CreateDirectory(Environment.CurrentDirectory + "\\ReceivedData");
+                }
+            string directory = Environment.CurrentDirectory + "\\ReceivedData";
             fileSelector.InitialDirectory = directory;
 #endif
             fileSelector.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
