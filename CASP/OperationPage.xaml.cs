@@ -123,14 +123,8 @@ namespace CASP
                 case "in.":
                     depth_int = (int)(depth_double * 2.54);
                     break;
-                case "ft":
-                    depth_int = (int)(depth_double * 30.48);
-                    break;
                 case "cm":
                     depth_int = (int)(depth_double * 1);
-                    break;
-                case "m":
-                    depth_int = (int)(depth_double * 100);
                     break;
             }   
             return depth_int;
@@ -324,7 +318,7 @@ namespace CASP
             }
             return average;
         }
-
+        // This function brings me pain. I am sorry.
         void sp_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
@@ -365,26 +359,21 @@ namespace CASP
                     }
                     else
                     {
-                        // (adc/14777216)*2.56 is the voltage received at the adc
+                        // (adc/16777216)*2.56 is the voltage received at the adc
                         string[] items = line.Split(',');
                         //Get numbers from strings and convert to their values
                         double i1 = long.Parse(items[1]);
-                        if (i1 > 5120000)
-                        {
-                            i1 -= 62587;
-                        }
                         if (ldcellZero == -1)
                         {
                             ldcellZero = i1;
                         } else
                         {
-                            i1 = (128 * Math.Abs(i1-ldcellZero)) / (1344.5 * Math.PI);
-                            double i2 = (((long.Parse(items[2]) / 14777216.0) * 2.56) - 1)*100; //TODO: Convert to resistance
+                            // The decimal is the surface area of the probes
+                            i1 = (Math.Abs(i1 - ldcellZero) / 148415) / 0.1242524438187;
+                            double i2 = ((long.Parse(items[2]) / 16777216.0) * 2.56) * 1000; //TODO: Convert to resistance
                             double i1Average = movingAverage(i1, true);
                             double i2Average = movingAverage(i2, false);
-                            items[1] = i1.ToString();
-                            items[2] = i2.ToString();
-                            line = items[0] + "," + items[1] + "," + i1Average.ToString() + "," + items[2] + "," + i2Average.ToString();
+                            line = items[0] + "," + i1.ToString() + "," + i1Average.ToString() + "," + i2.ToString() + "," + i2Average.ToString();
                             File.AppendAllText(currentPath, line + "\n");
                         }
                     }

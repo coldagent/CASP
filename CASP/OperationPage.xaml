@@ -54,8 +54,6 @@
                 <ComboBoxItem Content="Unit" Focusable="False" IsTabStop="False" IsHitTestVisible="False" IsEnabled="False" Visibility="Hidden" FontFamily="Open Sans"/>
                 <ComboBoxItem Content="in." FontFamily="Open Sans"/>
                 <ComboBoxItem Content="cm" FontFamily="Open Sans"/>
-                <ComboBoxItem Content="ft" FontFamily="Open Sans"/>
-                <ComboBoxItem Content="m" FontFamily="Open Sans"/>
             </ComboBox>
 
         </Grid>

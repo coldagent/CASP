@@ -8,7 +8,7 @@
 
 //Declaration of global values
 #define USART0_BAUD_RATE(BAUD_RATE)     ((float)(64 * F_CPU / (16 * (float)BAUD_RATE)) + 0.5)
-#define M1            PIN_PD0   //PC0 -> PD0
+#define M1            PIN_PC0   //PC0 -> PD0
 #define M2            PIN_PA6
 #define M3            PIN_PA5
 #define TQ            PIN_PD7
@@ -17,7 +17,7 @@
 #define Reset         PIN_PA2
 #define CLK           PIN_PA3
 #define CWCCW         PIN_PA7
-#define maxDepth      25.4        //cm
+#define maxDepth      25.4      //cm
 #define steps_cm      251       //steps per cm
 #define LIMIT_SWITCH  PIN_PD2
 
@@ -227,8 +227,21 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   unsigned int numSteps = dist * steps_cm;
   char buf[8] = {};
   size_t bufSize = 8;
-  unsigned long ldcellVal = 0;
+  unsigned long ldcellVal = getLoadCellVal();
   bool ldcellBool = true;
+
+  //send to ldcell calibration value
+  if (measuring) {
+    char initialOutput[45] = "0,";
+    char initialLDCell[15] = {};
+    ltoa(ldcellVal, initialLDCell, 10);
+    strcat(initialOutput, initialLDCell);
+    strcat(initialOutput, ",0");
+    USART0_sendLine(initialOutput, strlen(initialOutput));
+    _delay_ms(20);
+  }
+  
+  //run motor and take measurements
   for (unsigned int i = 0; i < numSteps; i++) {   //This could be sped up but I'm about to graduate
     digitalWrite(CLK, HIGH);
     _delay_ms(speed);
