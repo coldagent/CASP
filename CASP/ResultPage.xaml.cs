@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -150,15 +151,20 @@ namespace CASP
 
         private void FileNames_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            string selectedName = (string)FileNames.SelectedItem;
-            ResultPlot.Plot.Clear();
-            if (selectedName == null)
-                return;
-            ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][1].ToArray());
-            var moisture_plot = ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][2].ToArray());
-            moisture_plot.YAxisIndex = 1;
-            ResultPlot.Refresh();
-
+            try
+            {
+                string selectedName = (string)FileNames.SelectedItem;
+                ResultPlot.Plot.Clear();
+                if (selectedName == null)
+                    return;
+                ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][1].ToArray());
+                var moisture_plot = ResultPlot.Plot.AddScatter(data[selectedName][0].ToArray(), data[selectedName][2].ToArray());
+                moisture_plot.YAxisIndex = 1;
+                ResultPlot.Refresh();
+            } catch(Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
         }
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)

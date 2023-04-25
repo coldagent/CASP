@@ -160,7 +160,7 @@ namespace CASP
                 return;
             } else
             {
-                currentFile = DateTime.Now.ToString("yyyyMMMdd HHmm") + ".csv";
+                currentFile = DateTime.Now.ToString("yyyyMMMdd HHmmss") + ".csv";
                 int depth = CalculateDepth();
                 running = true;
                 try
@@ -325,6 +325,11 @@ namespace CASP
             {
                 string line = sp.ReadLine();
                 Debug.WriteLine("Received: " + line);
+                /*string messageBoxText = "Received: " + line;
+                string caption = "Message";
+                MessageBoxButton button = MessageBoxButton.OK;
+                MessageBoxImage icon = MessageBoxImage.Information;
+                MessageBox.Show(messageBoxText, caption, button, icon, MessageBoxResult.Yes);*/
                 if (running)
                 {
                     if (!line.Equals("done"))
@@ -369,8 +374,8 @@ namespace CASP
                         } else
                         {
                             // The decimal is the surface area of the probes
-                            i1 = (Math.Abs(i1 - ldcellZero) / 148415) / 0.1242524438187;
-                            double i2 = ((long.Parse(items[2]) / 16777216.0) * 2.56) * 1000; //TODO: Convert to resistance
+                            i1 = (Math.Abs(i1 - ldcellZero) / 768) * 0.1242524438187;
+                            double i2 = (long.Parse(items[2]) / 16777216.0) * 5120; //TODO: Convert to resistance
                             double i1Average = movingAverage(i1, true);
                             double i2Average = movingAverage(i2, false);
                             line = items[0] + "," + i1.ToString() + "," + i1Average.ToString() + "," + i2.ToString() + "," + i2Average.ToString();

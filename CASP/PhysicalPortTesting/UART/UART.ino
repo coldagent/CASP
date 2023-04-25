@@ -8,7 +8,7 @@
 
 //Declaration of global values
 #define USART0_BAUD_RATE(BAUD_RATE)     ((float)(64 * F_CPU / (16 * (float)BAUD_RATE)) + 0.5)
-#define M1            PIN_PC0   //PC0 -> PD0
+#define M1            PIN_PC0
 #define M2            PIN_PA6
 #define M3            PIN_PA5
 #define TQ            PIN_PD7
@@ -21,19 +21,24 @@
 #define steps_cm      251       //steps per cm
 #define LIMIT_SWITCH  PIN_PD2
 
-#define ADC_MISO_DOUT PIN_PD6   //PD6 -> PC1
-#define ADC_MOSI_DIN  PIN_PC1   //PC1 -> PC0
-#define ADC_SCLK      PIN_PD0   //PD0 -> PC2
+#define ADC_MISO_DOUT PIN_PD6
+#define ADC_MOSI_DIN  PIN_PC1
+#define ADC_SCLK      PIN_PD0
 #define ADC_SS_CS     PIN_PC3
-#define ADC_NREADY    PIN_PC2   //PC2 -> PD6
+#define ADC_NREADY    PIN_PC2
 #define ADC_RESET     PIN_PD5
 #define ADC_DELAY     20
 
 #define WRITE_ADCCON_REG    0b00000010
-#define READ_ADCDATA_REG   0b01000100
-#define REG_READ      0b00000000
-#define CHAN_LDCELL   0b00011111  //AIN2-AINCOM, unipolar encoding, +/- 2.56 V input range
-#define CHAN_PROBE    0b01101111  //AIN7-AINCOM, unipolar encoding, +/- 2.56 V input range
+#define READ_ADCDATA_REG    0b01000100
+#define WRITE_MODE_REG      0b00000001
+#define READ_MODE_REG       0b01000001
+#define MODE_ZERO_SCALE_CAL 0b00000100
+#define MODE_FULL_SCALE_CAL 0b00000101
+#define REG_READ            0b00000000
+#define CHAN_LDCELL         0b00010111  //AIN2-AINCOM, unipolar encoding, +/- 2.56 V input range
+#define CHAN_PROBE          0b01100111  //AIN7-AINCOM, unipolar encoding, +/- 2.56 V input range
+#define READ_STATUS         0b01000000
 
 double probeLoc = 0;
 
@@ -58,11 +63,6 @@ void SPI1_init(void){
   digitalWrite(ADC_RESET, HIGH);
   digitalWrite(ADC_SS_CS, LOW);
   digitalWrite(ADC_SCLK, HIGH);
-
-  //PORTC.DIRSET = PIN0_bm | PIN2_bm | PIN3_bm;           /* set PC0, PC2, PC3 as output */
-  //PORTC.DIRCLR = PIN1_bm;                               /* set PC1 as input */
-  /* set this device to master, enable SPI, set prescaling to be 1/16 of MCU clock */
-  //SPI1.CTRLA = SPI_MASTER_bm | SPI_ENABLE_bm | SPI_PRESC0_bm;
 }
 
 void ADC_init(void) {
@@ -72,12 +72,19 @@ void ADC_init(void) {
   readwrite_spi_byte(0b00000011); //next write to FILTER
   readwrite_spi_byte(0b00001101); //set ADC update time to 9.52 ms
 
+  calibrateADC();
+  checkStatus();
+
   /* Select Load Cell channel */
   readwrite_spi_byte(WRITE_ADCCON_REG); //next write to ADCCON
   readwrite_spi_byte(CHAN_LDCELL); //select AIN2, bipolar coding, +/- 2.56 V input range
 
-  readwrite_spi_byte(0b00000001); //next write to MODE
-  readwrite_spi_byte(0b00010011); //begin continuous conversion
+  readwrite_spi_byte(WRITE_MODE_REG); //next write to MODE
+  readwrite_spi_byte(0b00000011); //begin continuous conversion
+
+  checkStatus();
+  _delay_ms(1000);
+  checkStatus();
 }
 
 void USART0_init(void){
@@ -112,19 +119,6 @@ void motor_init(void) {
 }
 
 /* SPI Functions */
-// must wrap with check if ~RDY then setting CS/SS to low then high again
-/*char SPI1_receiveChar(void){
-  SPI1.DATA = 0xFF;
-  while(!(SPI1.INTFLAGS & SPI_IF_bm));
-  return SPI1.DATA;
-}
-
-//must wrap with setting CS/SS to low then high again
-void SPI1_sendChar(char c){
-  SPI1.DATA = c;
-  while(!(SPI1.INTFLAGS & SPI_IF_bm));
-}*/
-
 unsigned char readwrite_spi_byte(unsigned char out_byte) {
   unsigned char in_byte = 0x00;
   //char test[8];
@@ -227,17 +221,21 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   unsigned int numSteps = dist * steps_cm;
   char buf[8] = {};
   size_t bufSize = 8;
-  unsigned long ldcellVal = getLoadCellVal();
+  unsigned long ldcellVal = 0;
   bool ldcellBool = true;
 
   //send to ldcell calibration value
   if (measuring) {
+    getProbeVal();
+    _delay_ms(20);
+    ldcellVal = getLoadCellVal();
     char initialOutput[45] = "0,";
     char initialLDCell[15] = {};
     ltoa(ldcellVal, initialLDCell, 10);
     strcat(initialOutput, initialLDCell);
     strcat(initialOutput, ",0");
     USART0_sendLine(initialOutput, strlen(initialOutput));
+    getProbeVal();
     _delay_ms(20);
   }
   
@@ -283,8 +281,7 @@ void driveProbe(int dist, bool down, double speed, bool measuring) {
   }
 
   //make sure we start on the ldcell channel
-  readwrite_spi_byte(WRITE_ADCCON_REG);
-  readwrite_spi_byte(CHAN_LDCELL);
+  getProbeVal();
   
   //turn off stepper motor
   _delay_ms(1);
@@ -330,7 +327,6 @@ void testADC() {
   //Read Probe1 data
   readwrite_spi_byte(WRITE_ADCCON_REG);
   readwrite_spi_byte(CHAN_LDCELL);
-  while(digitalRead(ADC_NREADY));
   readwrite_spi_byte(READ_ADCDATA_REG);
   unsigned long num1 = readwrite_spi_byte(READ_ADCDATA_REG);
   num1 <<= 16;
@@ -339,6 +335,62 @@ void testADC() {
   char s[10];
   ltoa(num1, s, 10);
   USART0_sendLine(s, strlen(s));
+}
+
+void checkStatus() {
+  readwrite_spi_byte(READ_STATUS);
+  unsigned long status = readwrite_spi_byte(REG_READ);
+  char output[20] = "ADC Status: ";
+  char statusString[5] = {0};
+  ltoa(status, statusString, 10);
+  strcat(output, statusString);
+  USART0_sendLine(output, strlen(output));
+}
+
+void calibrateADC() {
+  //Calibrate Load Cell Channel
+  readwrite_spi_byte(WRITE_ADCCON_REG);
+  readwrite_spi_byte(CHAN_LDCELL);
+
+  readwrite_spi_byte(WRITE_MODE_REG);
+  readwrite_spi_byte(MODE_ZERO_SCALE_CAL);
+  readwrite_spi_byte(READ_MODE_REG);
+  unsigned int val = readwrite_spi_byte(REG_READ) & 7;
+  while(val != 1) {
+    readwrite_spi_byte(READ_MODE_REG);
+    val = readwrite_spi_byte(REG_READ) & 7;
+  }
+  
+  readwrite_spi_byte(WRITE_MODE_REG);
+  readwrite_spi_byte(MODE_FULL_SCALE_CAL);
+  readwrite_spi_byte(READ_MODE_REG);
+  val = readwrite_spi_byte(REG_READ) & 7;
+  while(val != 1) {
+    readwrite_spi_byte(READ_MODE_REG);
+    val = readwrite_spi_byte(REG_READ) & 7;
+  }
+
+  // Calibrate Probe Channel
+  readwrite_spi_byte(WRITE_ADCCON_REG);
+  readwrite_spi_byte(CHAN_PROBE);
+
+  readwrite_spi_byte(WRITE_MODE_REG);
+  readwrite_spi_byte(MODE_ZERO_SCALE_CAL);
+  readwrite_spi_byte(READ_MODE_REG);
+  val = readwrite_spi_byte(REG_READ) & 7;
+  while(val != 1) {
+    readwrite_spi_byte(READ_MODE_REG);
+    val = readwrite_spi_byte(REG_READ) & 7;
+  }
+  
+  readwrite_spi_byte(WRITE_MODE_REG);
+  readwrite_spi_byte(MODE_FULL_SCALE_CAL);
+  readwrite_spi_byte(READ_MODE_REG);
+  val = readwrite_spi_byte(REG_READ) & 7;
+  while(val != 1) {
+    readwrite_spi_byte(READ_MODE_REG);
+    val = readwrite_spi_byte(REG_READ) & 7;
+  }
 }
 
 /* Main code */
@@ -364,6 +416,8 @@ int main(void){
       USART0_sendLine("done", strlen("done"));
     } else if (strncmp(buf, "%adc", bufSize) == 0) {
       testADC();
+    } else if (strncmp(buf, "%status", bufSize) == 0) {
+      checkStatus();
     } else if (strncmp(buf, "%switch", bufSize) == 0) {
       bool pressed = digitalRead(LIMIT_SWITCH);
       if (pressed) {
